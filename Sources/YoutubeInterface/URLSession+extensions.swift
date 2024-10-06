@@ -9,7 +9,7 @@ import Foundation
 import os
 import SwiftSoup
 
-extension URLSession: InternalConfigurationRequestManager {
+extension URLSession: MusicSession {
   enum YoutubeInterfaceURLSessionError: Error {
     case invalidURL
     case errorInApiRequest(String)
@@ -20,8 +20,8 @@ extension URLSession: InternalConfigurationRequestManager {
     case notFoundParsingData
   }
   
-  func getRequestHeader() async -> Result<[String: Any], any Error> {
-    guard let url = URL(string: YoutubeInterfaceURL.config.rawValue) else {
+  func getRequestPayload() async -> Result<[String: Any], any Error> {
+    guard let url = URL(string: HTTPMusicAPIPaths.requestPayload.rawValue) else {
       return .failure(YoutubeInterfaceURLSessionError.invalidURL)
     }
     
@@ -75,4 +75,47 @@ extension URLSession: InternalConfigurationRequestManager {
       return .failure(YoutubeInterfaceURLSessionError.errorInApiRequest(error.localizedDescription))
     }
   }
+  
+  func getHomeScreenMusicList() async {
+    guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList.rawValue) else {
+      return
+    }
+    
+    var request = URLRequest(url: url, timeoutInterval: 10)
+    request.httpMethod = "POST"
+    
+    let result = await getRequestPayload()
+    
+    switch result {
+    case .success(let payload):
+      print("Hello")
+    case .failure(let error):
+      print("Error")
+    }
+    do {
+      let (data, response) = try await data(for: request)
+      guard let response = response as? HTTPURLResponse else {
+        os_log("Invalid response from server", log: Logger.networking, type: .error)
+        //        return .failure(YoutubeInterfaceURLSessionError.invalidResponse)
+        return
+      }
+      
+      guard response.statusCode == 200 else {
+        os_log("Invalid status code %d", log: Logger.networking, type: .error, response.statusCode)
+        //        return .failure(YoutubeInterfaceURLSessionError.invalidStatusCode(response.statusCode))
+        return
+      }
+      
+      guard let json = try? JSONSerialization.jsonObject(with: data) else {
+        os_log("Invalid JSON for parsing music items", log: Logger.networking, type: .error)
+        return
+      }
+      
+      print(json)
+    } catch {
+      os_log("Error making API request %{public}s", log: Logger.networking, type: .error, #function)
+    }
+  }
 }
+
+

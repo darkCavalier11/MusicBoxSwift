@@ -2,10 +2,10 @@ import Testing
 @testable import YoutubeInterface
 
 
-@Test
-func TestbuildRequestHeader() async throws {
+@Test("Building request payload")
+func TestBuildRequestPayload() async throws {
   let yti = YoutubeInterface()
-  let result = await yti.internalConfigurationRequestManager.getRequestHeader()
+  let result = await yti.musicSession.getRequestPayload()
   #expect(result != nil)
   
   switch result {
@@ -25,4 +25,10 @@ func TestbuildRequestHeader() async throws {
   case .failure(let error):
     #expect(error != nil)
   }
+}
+
+@Test("Getting homescreen music items")
+func TestGetHomescreenMusicItems() async throws {
+  let yti = YoutubeInterface()
+  let result = await yti.musicSession.getHomeScreenMusicList()
 }

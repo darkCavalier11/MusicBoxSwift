@@ -4,12 +4,14 @@ import SwiftSoup
 import Foundation
 import os
 
-enum YoutubeInterfaceURL: String {
-  case config = "https://www.youtube.com/"
+enum HTTPMusicAPIPaths: String {
+  case requestPayload = "https://www.youtube.com/"
+  case homeScreenMusicList = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
 }
 
-protocol InternalConfigurationRequestManager {
-  func getRequestHeader() async -> Result<[String: Any], any Error>
+protocol MusicSession {
+  func getRequestPayload() async -> Result<[String: Any], any Error>
+  func getHomeScreenMusicList() async
 }
 
 struct Logger {
@@ -17,10 +19,10 @@ struct Logger {
 }
 
 struct YoutubeInterface {
-  let internalConfigurationRequestManager: InternalConfigurationRequestManager
+  let musicSession: MusicSession
   
-  init(internalConfigurationRequestManager: InternalConfigurationRequestManager = URLSession.shared) {
-    self.internalConfigurationRequestManager = internalConfigurationRequestManager
+  init(musicSession: MusicSession = URLSession.shared) {
+    self.musicSession = musicSession
   }
 }
 

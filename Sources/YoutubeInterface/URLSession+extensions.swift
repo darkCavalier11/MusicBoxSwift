@@ -20,9 +20,9 @@ extension URLSession: MusicSession {
     case notFoundParsingData
   }
   
-  func getRequestPayload() async -> Result<[String: Any], any Error> {
+  func getRequestPayload() async -> [String: Any]? {
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload.rawValue) else {
-      return .failure(YoutubeInterfaceURLSessionError.invalidURL)
+      return nil
     }
     
     let request = URLRequest(url: url, timeoutInterval: 10)
@@ -30,17 +30,17 @@ extension URLSession: MusicSession {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
         os_log("Invalid response from server", log: Logger.networking, type: .error)
-        return .failure(YoutubeInterfaceURLSessionError.invalidResponse)
+        return nil
       }
       
       guard response.statusCode == 200 else {
         os_log("Invalid status code %d", log: Logger.networking, type: .error, response.statusCode)
-        return .failure(YoutubeInterfaceURLSessionError.invalidStatusCode(response.statusCode))
+        return nil
       }
       
       guard let htmlString = String(data: data, encoding: .utf8) else {
         os_log("Unable to parse HTML string %{public}s", log: Logger.networking, type: .error, url.absoluteString)
-        return .failure(YoutubeInterfaceURLSessionError.invalidData)
+        return nil
       }
       let htmlDocument = try? SwiftSoup.parse(htmlString)
       let body = htmlDocument?.body()
@@ -63,16 +63,16 @@ extension URLSession: MusicSession {
       }
       
       guard let context, !context.isEmpty else {
-        return .failure(YoutubeInterfaceURLSessionError.invalidData)
+        return nil
       }
       let contextWrap: [String: Any] = [
         "context": context.first! as [String: Any],
         "continuation": "4qmFsgKzAxIPRkV3aGF0X3RvX3dhdGNoGoIDaWdNVU1oSkZaMGxKUkhodlJsUllWbnBoVjAwbE0wVENCSVFDUjBreWQzWTFNazR0V1dkRVYyMHdTMkYzYjFwbFdGSm1ZMGRHYmxwV09YcGliVVozWXpKb2RtUkdPWGxhVjJSd1lqSTFhR0pDU1daamVrNWhZa1JzY1ZsV1VqRk5WM1JaVkZWc1dGSlZkRXRVUkU1NFRGVkdWbU5ITlhwVFJYQnZZWGh2ZEVGQlFteGlhVEZJVVdkQlFsTlZORUZCVld4UFFVRkZRVkpyVmpOaFIwWXdXRE5TZGxnelpHaGtSMDV2UVVGRlFrRlJRVUZCVVVGQlFWRkZRVmxyUlVsQlFrbFVXbTFzYzJSSFZubGFWMUptWTBkR2JscFdPVEJpTW5Sc1ltaHZWRU5NY1Uxb05USk9MVmxuUkVabWFGZHVVV3RrWDNoamQxSlRTVlJEVEhGTmFEVXlUaTFaWjBSR1ptaFhibEZyWkY5NFkzZFNaSEkyZWpWUlMwRm5aMEUlM0SaAhpicm93c2UtZmVlZEZFd2hhdF90b193YXRjaA%3D%3D"
       ]
-      return .success(contextWrap)
+      return contextWrap
     } catch {
       os_log("Error making API request", log: Logger.networking, type: .error)
-      return .failure(YoutubeInterfaceURLSessionError.errorInApiRequest(error.localizedDescription))
+      return nil
     }
   }
   
@@ -85,13 +85,6 @@ extension URLSession: MusicSession {
     request.httpMethod = "POST"
     
     let result = await getRequestPayload()
-    
-    switch result {
-    case .success(let payload):
-      print("Hello")
-    case .failure(let error):
-      print("Error")
-    }
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {

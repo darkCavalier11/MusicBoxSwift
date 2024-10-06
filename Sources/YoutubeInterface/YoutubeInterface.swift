@@ -10,7 +10,7 @@ enum HTTPMusicAPIPaths: String {
 }
 
 protocol MusicSession {
-  func getRequestPayload() async -> Result<[String: Any], any Error>
+  func getRequestPayload() async -> [String: Any]?
   func getHomeScreenMusicList() async
 }
 

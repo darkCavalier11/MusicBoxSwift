@@ -6,12 +6,12 @@ import PackageDescription
 let package = Package(
     name: "YoutubeInterface",
     platforms: [
-      .iOS(.v13),
-      .macOS(.v10_15),
-      .watchOS(.v6),
+      .iOS(.v14),
+      .macOS(.v11),
+      .watchOS(.v7),
       .driverKit(.v19),
-      .macCatalyst(.v13),
-      .tvOS(.v13),
+      .macCatalyst(.v14),
+      .tvOS(.v14),
       .visionOS(.v1),
     ],
     products: [

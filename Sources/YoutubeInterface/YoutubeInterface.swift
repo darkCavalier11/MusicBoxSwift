@@ -14,10 +14,6 @@ protocol MusicSession {
   func getHomeScreenMusicList() async
 }
 
-struct Logger {
-  static let networking = OSLog(subsystem: "api.youtube.interface", category: "networking")
-}
-
 struct YoutubeInterface {
   let musicSession: MusicSession
   

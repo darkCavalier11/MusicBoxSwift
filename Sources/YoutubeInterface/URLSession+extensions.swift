@@ -9,6 +9,14 @@ import Foundation
 import os
 import SwiftSoup
 
+fileprivate let logger = Logger(subsystem: "com.youtube.interface", category: "Networking")
+
+extension Logger {
+  func recordFileAndFunction(file: StaticString = #file, function: StaticString = #function) {
+    debug("\(file, privacy: .public) : \(function, privacy: .public)")
+  }
+}
+
 extension URLSession: MusicSession {
   enum YoutubeInterfaceURLSessionError: Error {
     case invalidURL
@@ -21,6 +29,7 @@ extension URLSession: MusicSession {
   }
   
   func getRequestPayload() async -> [String: Any]? {
+    logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload.rawValue) else {
       return nil
     }
@@ -29,17 +38,17 @@ extension URLSession: MusicSession {
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        os_log("Invalid response from server", log: Logger.networking, type: .error)
+        logger.error("Invalid response from server")
         return nil
       }
       
       guard response.statusCode == 200 else {
-        os_log("Invalid status code %d", log: Logger.networking, type: .error, response.statusCode)
+        logger.error("Invalid status code \(response.statusCode, privacy: .public)")
         return nil
       }
       
       guard let htmlString = String(data: data, encoding: .utf8) else {
-        os_log("Unable to parse HTML string %{public}s", log: Logger.networking, type: .error, url.absoluteString)
+        logger.error("Unable to parse HTML string \(response.statusCode, privacy: .public)")
         return nil
       }
       let htmlDocument = try? SwiftSoup.parse(htmlString)
@@ -71,12 +80,13 @@ extension URLSession: MusicSession {
       ]
       return contextWrap
     } catch {
-      os_log("Error making API request", log: Logger.networking, type: .error)
+      logger.error("Error making API request \(error.localizedDescription, privacy: .public)")
       return nil
     }
   }
   
   func getHomeScreenMusicList() async {
+    logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList.rawValue) else {
       return
     }
@@ -84,29 +94,33 @@ extension URLSession: MusicSession {
     var request = URLRequest(url: url, timeoutInterval: 10)
     request.httpMethod = "POST"
     
-    let result = await getRequestPayload()
+    guard let result = await getRequestPayload() else {
+      logger.error("Error getting request payload")
+      return
+    }
+    
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        os_log("Invalid response from server", log: Logger.networking, type: .error)
+        logger.error("Invalid response from server")
         //        return .failure(YoutubeInterfaceURLSessionError.invalidResponse)
         return
       }
       
       guard response.statusCode == 200 else {
-        os_log("Invalid status code %d", log: Logger.networking, type: .error, response.statusCode)
-        //        return .failure(YoutubeInterfaceURLSessionError.invalidStatusCode(response.statusCode))
+        logger.error("Invalid status code \(response.statusCode)")
         return
       }
       
       guard let json = try? JSONSerialization.jsonObject(with: data) else {
-        os_log("Invalid JSON for parsing music items", log: Logger.networking, type: .error)
+        logger.error("Invalid JSON for parsing music items")
         return
       }
       
       print(json)
     } catch {
-      os_log("Error making API request %{public}s", log: Logger.networking, type: .error, #function)
+      logger.error("Error making API request \(error.localizedDescription)")
+                   
     }
   }
 }

@@ -5,17 +5,29 @@ import PackageDescription
 
 let package = Package(
     name: "YoutubeInterface",
+    platforms: [
+      .iOS(.v13),
+      .macOS(.v10_15),
+      .watchOS(.v6),
+      .driverKit(.v19),
+      .macCatalyst(.v13),
+      .tvOS(.v13),
+      .visionOS(.v1),
+    ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "YoutubeInterface",
             targets: ["YoutubeInterface"]),
     ],
+    dependencies: [
+      .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "YoutubeInterface"),
+          name: "YoutubeInterface", dependencies: ["SwiftSoup"]),
         .testTarget(
             name: "YoutubeInterfaceTests",
             dependencies: ["YoutubeInterface"]

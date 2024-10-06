@@ -99,11 +99,17 @@ extension URLSession: MusicSession {
       return
     }
     
+    guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
+      logger.error("Error converting request payload to Data()")
+      return
+    }
+    
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = httpBody
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
         logger.error("Invalid response from server")
-        //        return .failure(YoutubeInterfaceURLSessionError.invalidResponse)
         return
       }
       
@@ -116,8 +122,6 @@ extension URLSession: MusicSession {
         logger.error("Invalid JSON for parsing music items")
         return
       }
-      
-      print(json)
     } catch {
       logger.error("Error making API request \(error.localizedDescription)")
                    

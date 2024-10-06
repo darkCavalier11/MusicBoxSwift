@@ -16,6 +16,7 @@ struct HTTPMusicAPIPaths {
 protocol MusicSession {
   func getRequestPayload() async -> [String: Any]?
   func getHomeScreenMusicList() async
+  func getTypeAheadSearchResult(query: String) async
 }
 
 struct YoutubeInterface {

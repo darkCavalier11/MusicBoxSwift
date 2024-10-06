@@ -85,6 +85,31 @@ extension URLSession: MusicSession {
     }
   }
   
+  func getTypeAheadSearchResult(query: String) async {
+    logger.recordFileAndFunction()
+    guard let url = URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query)) else {
+      return
+    }
+    
+    let request = URLRequest(url: url)
+    do {
+      let (data, response) = try await data(for: request)
+      guard let response = response as? HTTPURLResponse else {
+        logger.error("Error getting response")
+        return
+      }
+      
+      guard response.statusCode == 200 else {
+        logger.error("Error getting response status code: \(response.statusCode)")
+        return
+      }
+      
+      print(String(data: data, encoding: .utf8))
+    } catch {
+      logger.error("Error making API request \(error.localizedDescription)")
+    }
+  }
+  
   func getHomeScreenMusicList() async {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList) else {
@@ -124,7 +149,6 @@ extension URLSession: MusicSession {
       }
     } catch {
       logger.error("Error making API request \(error.localizedDescription)")
-                   
     }
   }
 }

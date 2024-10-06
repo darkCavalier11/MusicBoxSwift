@@ -24,3 +24,9 @@ func TestGetHomescreenMusicItems() async throws {
   let yti = YoutubeInterface()
   let result = await yti.musicSession.getHomeScreenMusicList()
 }
+
+@Test("Getting search result suggestion for query")
+func TestGetTypeAheadSearchResult() async throws {
+  let yti = YoutubeInterface()
+  let result = await yti.musicSession.getTypeAheadSearchResult(query: "test")
+}

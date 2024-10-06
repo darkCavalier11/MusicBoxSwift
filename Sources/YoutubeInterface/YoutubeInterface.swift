@@ -4,9 +4,13 @@ import SwiftSoup
 import Foundation
 import os
 
-enum HTTPMusicAPIPaths: String {
-  case requestPayload = "https://www.youtube.com/"
-  case homeScreenMusicList = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
+struct HTTPMusicAPIPaths {
+  static let requestPayload = "https://www.youtube.com/"
+  static let homeScreenMusicList = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
+  static func suggestionTypeAheadResults(query: String) -> String {
+    "https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&hl=en&gl=en&q=\(query)&callback=func"
+  }
+  
 }
 
 protocol MusicSession {

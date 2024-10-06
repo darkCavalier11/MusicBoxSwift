@@ -30,7 +30,7 @@ extension URLSession: MusicSession {
   
   func getRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
-    guard let url = URL(string: HTTPMusicAPIPaths.requestPayload.rawValue) else {
+    guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }
     
@@ -87,7 +87,7 @@ extension URLSession: MusicSession {
   
   func getHomeScreenMusicList() async {
     logger.recordFileAndFunction()
-    guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList.rawValue) else {
+    guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList) else {
       return
     }
     

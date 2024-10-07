@@ -279,8 +279,8 @@ extension URLSession: MusicSession {
           publisherTitle: publisherTitle ?? "-",
           runningDurationInSeconds: runningDurationInSeconds,
           musicId: musicId,
-          smallestThumbnail: smallestThumbnail ?? "-",
-          largestThumbnail: largestThumbnail ?? "-"
+          smallestThumbnail: smallestThumbnail ?? "https://img.icons8.com/?size=50&id=88618&format=png&color=000000",
+          largestThumbnail: largestThumbnail ?? "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
         )
         
         

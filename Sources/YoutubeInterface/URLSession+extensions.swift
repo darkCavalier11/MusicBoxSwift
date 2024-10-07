@@ -262,7 +262,7 @@ extension URLSession: MusicSession {
           continue
         }
         
-        let publisherTitle = shortRuns[0]["text"]
+        let publisherTitle = shortRuns[0]["text"] as? String
         
         let lengthText = videoWithContextRenderer?["lengthText"] as? [String: Any]
         guard let lengthRuns = lengthText?["runs"] as? [[String: Any]], lengthRuns.count > 0 else {
@@ -270,9 +270,20 @@ extension URLSession: MusicSession {
         }
         
         let runningDuration = lengthRuns[0]["text"] as? String
-        let runningTimeInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
+        let runningDurationInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
         
         let musicId = (videoWithContextRenderer?["videoId"] as? String) ?? "-"
+        
+        let musicItem = MusicItem(
+          title: title,
+          publisherTitle: publisherTitle ?? "-",
+          runningDurationInSeconds: runningDurationInSeconds,
+          musicId: musicId,
+          smallestThumbnail: smallestThumbnail ?? "-",
+          largestThumbnail: largestThumbnail ?? "-"
+        )
+        
+        
       }
       
     } catch {

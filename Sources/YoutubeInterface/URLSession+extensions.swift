@@ -63,8 +63,10 @@ extension URLSession: MusicSession {
           return nil
         }
         let jsonSuffix = scriptText[jsonBeginRange.lowerBound...]
-        let jsonEndRange = jsonSuffix.range(of: ");")
-        let jsonString = jsonSuffix[..<jsonEndRange!.lowerBound]
+        guard let jsonEndRange = jsonSuffix.range(of: ");") else {
+          return nil
+        }
+        let jsonString = jsonSuffix[..<jsonEndRange.lowerBound]
         guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [String: Any] else {
           return nil
         }
@@ -72,6 +74,7 @@ extension URLSession: MusicSession {
       }
       
       guard let context, !context.isEmpty else {
+        logger.error("Context request payload not found")
         return nil
       }
       let contextWrap: [String: Any] = [
@@ -85,10 +88,11 @@ extension URLSession: MusicSession {
     }
   }
   
-  func getTypeAheadSearchResult(query: String) async {
+  func getTypeAheadSearchResult(query: String) async -> [String] {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query)) else {
-      return
+      logger.error("Invalid URL for typeahead search \(URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query))?.absoluteString ?? "<None>", privacy: .public)")
+      return []
     }
     
     let request = URLRequest(url: url)
@@ -96,17 +100,50 @@ extension URLSession: MusicSession {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
         logger.error("Error getting response")
-        return
+        return []
       }
       
       guard response.statusCode == 200 else {
         logger.error("Error getting response status code: \(response.statusCode)")
-        return
+        return []
       }
       
-      print(String(data: data, encoding: .utf8))
+      guard var scriptText = String(data: data, encoding: .utf8) else {
+        return []
+      }
+      scriptText += "%%$$_______padding_________$$%%"
+      guard let jsonBeginRange = scriptText.range(of: "func(") else {
+        return []
+      }
+      let jsonSuffix = scriptText[jsonBeginRange.upperBound...]
+      
+      guard let jsonEndRange = jsonSuffix.range(of: ")%%$$_______padding_________$$%%") else {
+        return []
+      }
+      let jsonString = jsonSuffix[..<jsonEndRange.lowerBound]
+      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [Any] else {
+        logger.error("Error parsing JSON")
+        return []
+      }
+      guard let metaList = json[1] as? [Any] else {
+        logger.error("Error getting suggestions array")
+        return []
+      }
+      
+      var suggestions: [String] = []
+      for meta in metaList {
+        guard let meta = meta as? [Any],
+                meta.count > 0,
+                let suggestion = meta[0] as? String
+        else {
+          continue
+        }
+        suggestions.append(suggestion)
+      }
+      return suggestions
     } catch {
       logger.error("Error making API request \(error.localizedDescription)")
+      return []
     }
   }
   

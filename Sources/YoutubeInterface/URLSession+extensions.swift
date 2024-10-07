@@ -272,6 +272,8 @@ extension URLSession: MusicSession {
         let runningDuration = lengthRuns[0]["text"] as? String
         let runningTimeInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
         
+        let musicId = videoWithContextRenderer?["videoId"]
+        print(musicId)
       }
       
     } catch {

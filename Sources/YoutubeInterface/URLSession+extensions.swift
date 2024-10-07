@@ -249,13 +249,13 @@ extension URLSession: MusicSession {
           continue
         }
         
-        let title = runs[0]["text"]
+        let title = (runs[0]["text"] as? String) ?? "-"
         
         let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
         let thumbnailList = thumbnail?["thumbnails"] as? [Any]
         
-        let smallestThumbnail = thumbnailList?.first
-        let largestThumbnail = thumbnailList?.last
+        let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
+        let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
         
         let shortBylineText = videoWithContextRenderer?["shortBylineText"] as? [String: Any]
         guard let shortRuns = shortBylineText?["runs"] as? [[String: Any]], shortRuns.count > 0 else {
@@ -272,8 +272,7 @@ extension URLSession: MusicSession {
         let runningDuration = lengthRuns[0]["text"] as? String
         let runningTimeInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
         
-        let musicId = videoWithContextRenderer?["videoId"]
-        print(musicId)
+        let musicId = (videoWithContextRenderer?["videoId"] as? String) ?? "-"
       }
       
     } catch {

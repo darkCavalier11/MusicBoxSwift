@@ -190,10 +190,10 @@ extension URLSession: MusicSession {
     }
   }
   
-  func getMusicSearchResults(query: String) async {
+  func getMusicSearchResults(query: String) async -> [MusicItem] {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.musicSearchResults) else {
-      return
+      return []
     }
     
     var request = URLRequest(url: url, timeoutInterval: 10)
@@ -201,13 +201,13 @@ extension URLSession: MusicSession {
     
     guard var result = await getRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
-      return
+      return []
     }
 
     result["query"] = query
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
-      return
+      return []
     }
     
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -217,17 +217,17 @@ extension URLSession: MusicSession {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
         logger.error("\(#function) -> \(#line) -> Invalid response from server")
-        return
+        return []
       }
       
       guard response.statusCode == 200 else {
         logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
-        return
+        return []
       }
       
       guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
-        return
+        return []
       }
 
       let parentContent = (json["contents"] as? [String: Any])
@@ -236,9 +236,10 @@ extension URLSession: MusicSession {
       let itemSectionRenderer = (primaryContents?[0] as? [String: Any])?["itemSectionRenderer"] as? [String: Any]
       guard let contents = itemSectionRenderer?["contents"] as? [Any] else {
         logger.error("\(#function) -> \(#line) Error getting music list")
-        return
+        return []
       }
       
+      var musicItems: [MusicItem] = []
       for musicContent in contents {
         guard let musicContent = musicContent as? [String: Any] else {
           continue
@@ -283,11 +284,12 @@ extension URLSession: MusicSession {
           largestThumbnail: largestThumbnail ?? "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
         )
         
-        
+        musicItems.append(musicItem)
       }
-      
+      return musicItems
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
+      return []
     }
   }
 }

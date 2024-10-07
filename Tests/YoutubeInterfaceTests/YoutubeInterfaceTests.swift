@@ -36,4 +36,11 @@ func TestGetTypeAheadSearchResult() async throws {
 func TestGetMusicSearchResults() async throws {
   let yti = YoutubeInterface()
   let result = await yti.musicSession.getMusicSearchResults(query: "odia songs")
+  #expect(!result.isEmpty)
+  #expect(result.first?.title != nil)
+  #expect(result.first?.largestThumbnail != nil)
+  #expect(result.first?.smallestThumbnail != nil)
+  #expect(result.first?.musicId != nil)
+  #expect(result.first?.runningDurationInSeconds != nil)
+  #expect(result.first?.publisherTitle != nil)
 }

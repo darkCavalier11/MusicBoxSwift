@@ -17,7 +17,7 @@ protocol MusicSession {
   func getRequestPayload() async -> [String: Any]?
   func getHomeScreenMusicList() async
   func getTypeAheadSearchResult(query: String) async -> [String]
-  func getMusicSearchResults(query: String) async
+  func getMusicSearchResults(query: String) async -> [MusicItem]
 }
 
 struct YoutubeInterface {

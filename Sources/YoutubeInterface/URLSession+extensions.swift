@@ -17,6 +17,7 @@ extension Logger {
   }
 }
 
+
 extension URLSession: MusicSession {
   enum YoutubeInterfaceURLSessionError: Error {
     case invalidURL
@@ -38,17 +39,17 @@ extension URLSession: MusicSession {
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        logger.error("Invalid response from server")
+        logger.error("\(#function) -> \(#line) -> Invalid response from server")
         return nil
       }
       
       guard response.statusCode == 200 else {
-        logger.error("Invalid status code \(response.statusCode, privacy: .public)")
+        logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode, privacy: .public)")
         return nil
       }
       
       guard let htmlString = String(data: data, encoding: .utf8) else {
-        logger.error("Unable to parse HTML string \(response.statusCode, privacy: .public)")
+        logger.error("\(#function) -> \(#line) -> Unable to parse HTML string \(response.statusCode, privacy: .public)")
         return nil
       }
       let htmlDocument = try? SwiftSoup.parse(htmlString)
@@ -74,7 +75,7 @@ extension URLSession: MusicSession {
       }
       
       guard let context, !context.isEmpty else {
-        logger.error("Context request payload not found")
+        logger.error("\(#function) -> \(#line) -> Context request payload not found")
         return nil
       }
       let contextWrap: [String: Any] = [
@@ -83,7 +84,7 @@ extension URLSession: MusicSession {
       ]
       return contextWrap
     } catch {
-      logger.error("Error making API request \(error.localizedDescription, privacy: .public)")
+      logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription, privacy: .public)")
       return nil
     }
   }
@@ -91,7 +92,7 @@ extension URLSession: MusicSession {
   func getTypeAheadSearchResult(query: String) async -> [String] {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query)) else {
-      logger.error("Invalid URL for typeahead search \(URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query))?.absoluteString ?? "<None>", privacy: .public)")
+      logger.error("\(#function) -> \(#line) -> Invalid URL for typeahead search \(URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query))?.absoluteString ?? "<None>", privacy: .public)")
       return []
     }
     
@@ -99,12 +100,12 @@ extension URLSession: MusicSession {
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        logger.error("Error getting response")
+        logger.error("\(#function) -> \(#line) -> Error getting response")
         return []
       }
       
       guard response.statusCode == 200 else {
-        logger.error("Error getting response status code: \(response.statusCode)")
+        logger.error("\(#function) -> \(#line) -> Error getting response status code: \(response.statusCode)")
         return []
       }
       
@@ -122,11 +123,11 @@ extension URLSession: MusicSession {
       }
       let jsonString = jsonSuffix[..<jsonEndRange.lowerBound]
       guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [Any] else {
-        logger.error("Error parsing JSON")
+        logger.error("\(#function) -> \(#line) -> Error parsing JSON")
         return []
       }
       guard let metaList = json[1] as? [Any] else {
-        logger.error("Error getting suggestions array")
+        logger.error("\(#function) -> \(#line) -> Error getting suggestions array")
         return []
       }
       
@@ -142,7 +143,7 @@ extension URLSession: MusicSession {
       }
       return suggestions
     } catch {
-      logger.error("Error making API request \(error.localizedDescription)")
+      logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
       return []
     }
   }
@@ -157,12 +158,12 @@ extension URLSession: MusicSession {
     request.httpMethod = "POST"
     
     guard let result = await getRequestPayload() else {
-      logger.error("Error getting request payload")
+      logger.error("\(#function) -> \(#line) -> Error getting request payload")
       return
     }
     
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
-      logger.error("Error converting request payload to Data()")
+      logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
       return
     }
     
@@ -171,23 +172,125 @@ extension URLSession: MusicSession {
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
-        logger.error("Invalid response from server")
+        logger.error("\(#function) -> \(#line) -> Invalid response from server")
         return
       }
       
       guard response.statusCode == 200 else {
-        logger.error("Invalid status code \(response.statusCode)")
+        logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
         return
       }
       
       guard let json = try? JSONSerialization.jsonObject(with: data) else {
-        logger.error("Invalid JSON for parsing music items")
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return
       }
     } catch {
-      logger.error("Error making API request \(error.localizedDescription)")
+      logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
+    }
+  }
+  
+  func getMusicSearchResults(query: String) async {
+    logger.recordFileAndFunction()
+    guard let url = URL(string: HTTPMusicAPIPaths.musicSearchResults) else {
+      return
+    }
+    
+    var request = URLRequest(url: url, timeoutInterval: 10)
+    request.httpMethod = "POST"
+    
+    guard var result = await getRequestPayload() else {
+      logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
+      return
+    }
+
+    result["query"] = query
+    guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
+      logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
+      return
+    }
+    
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = httpBody
+    
+    do {
+      let (data, response) = try await data(for: request)
+      guard let response = response as? HTTPURLResponse else {
+        logger.error("\(#function) -> \(#line) -> Invalid response from server")
+        return
+      }
+      
+      guard response.statusCode == 200 else {
+        logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
+        return
+      }
+      
+      guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
+        return
+      }
+
+      let parentContent = (json["contents"] as? [String: Any])
+      let sectionListRenderer = parentContent?["sectionListRenderer"] as? [String: Any]
+      let primaryContents = sectionListRenderer?["contents"] as? [Any]
+      let itemSectionRenderer = (primaryContents?[0] as? [String: Any])?["itemSectionRenderer"] as? [String: Any]
+      guard let contents = itemSectionRenderer?["contents"] as? [Any] else {
+        logger.error("\(#function) -> \(#line) Error getting music list")
+        return
+      }
+      
+      for musicContent in contents {
+        guard let musicContent = musicContent as? [String: Any] else {
+          continue
+        }
+        let videoWithContextRenderer = musicContent["videoWithContextRenderer"] as? [String: Any]
+        let headline = videoWithContextRenderer?["headline"] as? [String: Any]
+        guard let runs = headline?["runs"] as? [[String: String]], runs.count > 0 else {
+          continue
+        }
+        
+        let title = runs[0]["text"]
+        
+        let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
+        let thumbnailList = thumbnail?["thumbnails"] as? [Any]
+        
+        let smallestThumbnail = thumbnailList?.first
+        let largestThumbnail = thumbnailList?.last
+        
+        let shortBylineText = videoWithContextRenderer?["shortBylineText"] as? [String: Any]
+        guard let shortRuns = shortBylineText?["runs"] as? [[String: Any]], shortRuns.count > 0 else {
+          continue
+        }
+        
+        let publisherTitle = shortRuns[0]["text"]
+        
+        let lengthText = videoWithContextRenderer?["lengthText"] as? [String: Any]
+        guard let lengthRuns = lengthText?["runs"] as? [[String: Any]], lengthRuns.count > 0 else {
+          continue
+        }
+        
+        let runningDuration = lengthRuns[0]["text"] as? String
+        let runningTimeInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
+        
+      }
+      
+    } catch {
+      logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
     }
   }
 }
 
-
+private extension String {
+  /// 01:30 -> 90
+  /// 01:02:03 -> 3723
+  func convertDurationStringToSeconds() -> Int {
+    let components = self.split(separator: ":").reversed()
+    var totalDurationInSeconds = 0
+    
+    for (index, component) in components.enumerated() {
+      let componentValue = Int(component) ?? 0
+      totalDurationInSeconds += componentValue * Int(powl(60, Double(index)))
+    }
+    return totalDurationInSeconds
+  }
+}

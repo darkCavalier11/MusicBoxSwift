@@ -44,3 +44,9 @@ func TestGetMusicSearchResults() async throws {
   #expect(result.first?.runningDurationInSeconds != nil)
   #expect(result.first?.publisherTitle != nil)
 }
+
+@Test("Getting streaming URL for a music")
+func TestGetMusicStreamingURL() async {
+  let yti = YoutubeInterface()
+  await yti.musicSession.getMusicStreamingURL(musicId: "c3XOtUOdxlE")
+}

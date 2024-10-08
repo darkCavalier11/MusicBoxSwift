@@ -250,7 +250,7 @@ extension URLSession: MusicSession {
           continue
         }
         
-        let title = (runs[0]["text"] as? String) ?? "-"
+        let title = (runs[0]["text"]) ?? "-"
         
         let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
         let thumbnailList = thumbnail?["thumbnails"] as? [Any]
@@ -290,6 +290,52 @@ extension URLSession: MusicSession {
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
       return []
+    }
+  }
+  
+  func getMusicStreamingURL(musicId: String) async  {
+    logger.recordFileAndFunction()
+    guard let url = URL(string: HTTPMusicAPIPaths.logPlayEventForMusic) else {
+      return
+    }
+    
+    var request = URLRequest(url: url, timeoutInterval: 10)
+    request.httpMethod = "POST"
+    
+    guard var result = await getRequestPayload() else {
+      logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
+      return
+    }
+    
+    result["videoId"] = musicId
+    guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
+      return
+    }
+    
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = httpBody
+    
+    do {
+      let (data, response) = try await data(for: request)
+      guard let response = response as? HTTPURLResponse else {
+        logger.error("\(#function) -> \(#line) -> Invalid response from server")
+        return
+      }
+      
+      guard response.statusCode == 200 else {
+        logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
+        return
+      }
+      
+      guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
+        return
+      }
+      
+      print(json)
+    }
+    catch {
+      
     }
   }
 }

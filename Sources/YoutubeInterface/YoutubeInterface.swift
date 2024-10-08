@@ -11,6 +11,7 @@ struct HTTPMusicAPIPaths {
     "https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&hl=en&gl=en&q=\(query)&callback=func"
   }
   static let musicSearchResults = "https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
+  static let logPlayEventForMusic = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
 }
 
 protocol MusicSession {
@@ -18,6 +19,7 @@ protocol MusicSession {
   func getHomeScreenMusicList() async
   func getTypeAheadSearchResult(query: String) async -> [String]
   func getMusicSearchResults(query: String) async -> [MusicItem]
+  func getMusicStreamingURL(musicId: String) async
 }
 
 struct YoutubeInterface {

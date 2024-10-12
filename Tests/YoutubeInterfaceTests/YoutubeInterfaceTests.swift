@@ -5,10 +5,8 @@ import Testing
 @Test("Building request payload")
 func TestBuildRequestPayload() async throws {
   let yti = YoutubeInterface()
-  let header = await yti.musicSession.getRequestPayload()
+  let header = await yti.musicSession.getClientRequestPayload()
   #expect(header != nil)
-  let musicContinuationKey = header?["continuation"]
-  #expect(musicContinuationKey != nil)
   
   let context = (header?["context"] as? [String: Any])
   #expect(context != nil)

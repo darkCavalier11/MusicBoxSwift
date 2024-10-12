@@ -15,7 +15,7 @@ struct HTTPMusicAPIPaths {
 }
 
 protocol MusicSession {
-  func getRequestPayload() async -> [String: Any]?
+  func getClientRequestPayload() async -> [String: Any]?
   func getHomeScreenMusicList() async
   func getTypeAheadSearchResult(query: String) async -> [String]
   func getMusicSearchResults(query: String) async -> [MusicItem]

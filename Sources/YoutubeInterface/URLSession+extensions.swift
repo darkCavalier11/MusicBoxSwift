@@ -29,7 +29,7 @@ extension URLSession: MusicSession {
     case notFoundParsingData
   }
   
-  func getRequestPayload() async -> [String: Any]? {
+  func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
@@ -52,6 +52,7 @@ extension URLSession: MusicSession {
         logger.error("\(#function) -> \(#line) -> Unable to parse HTML string \(response.statusCode, privacy: .public)")
         return nil
       }
+      
       let htmlDocument = try? SwiftSoup.parse(htmlString)
       let body = htmlDocument?.body()
       let elements = try? body?.getElementsByTag("script")
@@ -80,7 +81,6 @@ extension URLSession: MusicSession {
       }
       let contextWrap: [String: Any] = [
         "context": context.first! as [String: Any],
-        "continuation": "4qmFsgKzAxIPRkV3aGF0X3RvX3dhdGNoGoIDaWdNVU1oSkZaMGxKUkhodlJsUllWbnBoVjAwbE0wVENCSVFDUjBreWQzWTFNazR0V1dkRVYyMHdTMkYzYjFwbFdGSm1ZMGRHYmxwV09YcGliVVozWXpKb2RtUkdPWGxhVjJSd1lqSTFhR0pDU1daamVrNWhZa1JzY1ZsV1VqRk5WM1JaVkZWc1dGSlZkRXRVUkU1NFRGVkdWbU5ITlhwVFJYQnZZWGh2ZEVGQlFteGlhVEZJVVdkQlFsTlZORUZCVld4UFFVRkZRVkpyVmpOaFIwWXdXRE5TZGxnelpHaGtSMDV2UVVGRlFrRlJRVUZCVVVGQlFWRkZRVmxyUlVsQlFrbFVXbTFzYzJSSFZubGFWMUptWTBkR2JscFdPVEJpTW5Sc1ltaHZWRU5NY1Uxb05USk9MVmxuUkVabWFGZHVVV3RrWDNoamQxSlRTVlJEVEhGTmFEVXlUaTFaWjBSR1ptaFhibEZyWkY5NFkzZFNaSEkyZWpWUlMwRm5aMEUlM0SaAhpicm93c2UtZmVlZEZFd2hhdF90b193YXRjaA%3D%3D"
       ]
       return contextWrap
     } catch {
@@ -157,7 +157,7 @@ extension URLSession: MusicSession {
     var request = URLRequest(url: url, timeoutInterval: 10)
     request.httpMethod = "POST"
     
-    guard let result = await getRequestPayload() else {
+    guard let result = await getClientRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload")
       return
     }
@@ -199,7 +199,7 @@ extension URLSession: MusicSession {
     var request = URLRequest(url: url, timeoutInterval: 10)
     request.httpMethod = "POST"
     
-    guard var result = await getRequestPayload() else {
+    guard var result = await getClientRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
       return []
     }
@@ -302,7 +302,7 @@ extension URLSession: MusicSession {
     var request = URLRequest(url: url, timeoutInterval: 10)
     request.httpMethod = "POST"
     
-    guard var result = await getRequestPayload() else {
+    guard var result = await getClientRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
       return
     }
@@ -331,8 +331,6 @@ extension URLSession: MusicSession {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return
       }
-      
-      print(json)
     }
     catch {
       

@@ -295,6 +295,12 @@ extension URLSession: MusicSession {
   
   func getMusicStreamingURL(musicId: String) async  {
     logger.recordFileAndFunction()
+    // TODO: - Return music streaming URL
+    await logPlaybackEvent(musicId: musicId)
+  }
+  
+  private func logPlaybackEvent(musicId: String) async {
+    logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.logPlayEventForMusic) else {
       return
     }
@@ -331,9 +337,40 @@ extension URLSession: MusicSession {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return
       }
+      
+      let playbackTracking = json["playbackTracking"] as? [String: Any]
+      let statsPlaybackURL = playbackTracking?["videostatsPlaybackUrl"] as? [String: Any]
+      
+      guard var baseURLString = statsPlaybackURL?["baseUrl"] as? String else {
+        logger.warning("Not able to log event because baseURL is missing from playback tracking")
+        return
+      }
+      baseURLString.replaceSubrange(baseURLString.startIndex..<baseURLString.index(baseURLString.startIndex, offsetBy: 22), with: "https://www.youtube.com/")
+      precondition(baseURLString.starts(with: "https://www.youtube.com"))
+      
+      guard var baseURL = URLComponents(string: baseURLString) else {
+        logger.log("Invalid playback track URL \(baseURLString)")
+        return
+      }
+      
+      baseURL.queryItems?.append(.init(name: "sourceid", value: "ys"))
+      baseURL.queryItems?.append(.init(name: "afmt", value: "251"))
+      baseURL.queryItems?.append(.init(name: "cr", value: Locale.current.regionCode ?? "IN"))
+      baseURL.queryItems?.append(.init(name: "hl", value: Locale.current.identifier))
+      baseURL.queryItems?.append(.init(name: "muted", value: "0"))
+      baseURL.queryItems?.append(.init(name: "ns", value: "yt"))
+      baseURL.queryItems?.append(.init(name: "ver", value: "2"))
+      
+      guard let playbackTrackingURL = baseURL.url else {
+        logger.log("Invalid playback track URL when added query \(baseURL)")
+        return
+      }
+      let playbackTrackingURLRequest = URLRequest(url: url, timeoutInterval: 10)
+      
+      _ = try? await self.data(for: playbackTrackingURLRequest)
     }
     catch {
-      
+      logger.error("Error loggin playback event \(error.localizedDescription)")
     }
   }
 }

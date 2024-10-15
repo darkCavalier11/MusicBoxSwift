@@ -11,6 +11,17 @@ import SwiftSoup
 
 fileprivate let logger = Logger(subsystem: "com.youtube.interface", category: "Networking")
 
+private struct HTTPMusicAPIPaths {
+  static let requestPayload = "https://www.youtube.com/"
+  static let homeScreenMusicList = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
+  static func suggestionTypeAheadResults(query: String) -> String {
+    "https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&hl=en&gl=en&q=\(query)&callback=func"
+  }
+  static let musicSearchResults = "https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
+  static let logPlayEventForMusic = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
+  static let musicContinuationToken = "https://www.youtube.com/"
+}
+
 extension Logger {
   func recordFileAndFunction(file: StaticString = #file, function: StaticString = #function) {
     debug("\(file, privacy: .public) : \(function, privacy: .public)")
@@ -29,7 +40,7 @@ extension URLSession: MusicSession {
     case notFoundParsingData
   }
   
-  func getClientRequestPayload() async -> [String: Any]? {
+  private func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
@@ -166,7 +177,7 @@ extension URLSession: MusicSession {
       logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
       return
     }
-    
+    await getMusicContinuationToken()
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = httpBody
     do {
@@ -181,7 +192,7 @@ extension URLSession: MusicSession {
         return
       }
       
-      guard let json = try? JSONSerialization.jsonObject(with: data) else {
+      guard let _ = try? JSONSerialization.jsonObject(with: data) else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return
       }
@@ -365,13 +376,70 @@ extension URLSession: MusicSession {
         logger.log("Invalid playback track URL when added query \(baseURL)")
         return
       }
-      let playbackTrackingURLRequest = URLRequest(url: url, timeoutInterval: 10)
+      let playbackTrackingURLRequest = URLRequest(url: playbackTrackingURL, timeoutInterval: 10)
       
       _ = try? await self.data(for: playbackTrackingURLRequest)
     }
     catch {
       logger.error("Error loggin playback event \(error.localizedDescription)")
     }
+  }
+  
+  private func getMusicContinuationToken() async -> String? {
+    logger.recordFileAndFunction()
+    guard let url = URL(string: HTTPMusicAPIPaths.musicContinuationToken) else {
+      return nil
+    }
+    
+    var request = URLRequest(url: url)
+    request.setValue("Cgtfa0laMWZvTHlmYyjeiqS4BjIKCgJJThIEGgAgRA%3D%3D", forHTTPHeaderField: "X-Goog-Visitor-Id")
+    
+    guard let (data, response) = try? await self.data(from: url) else {
+      return nil
+    }
+    
+    guard let response = response as? HTTPURLResponse else {
+      return nil
+    }
+    
+    guard response.statusCode == 200 else {
+      return nil
+    }
+    guard var htmlString = String(data: data, encoding: .utf8) else {
+      return nil
+    }
+    
+    let htmlDocument = try? SwiftSoup.parse(htmlString)
+    let body = htmlDocument?.body()
+    let elements = try? body?.getElementsByTag("script")
+    let context = elements?.compactMap { (scriptElement) -> [String: Any]? in
+      guard let scriptText = try? scriptElement.html(), scriptText.contains("responseContext") else {
+        return nil
+      }
+      
+      
+      guard let jsonBeginRange = scriptText.range(of: "\\x7b\\x22responseContext\\x22:\\x7b") else {
+        return nil
+      }
+      
+      
+      
+      let jsonSuffix = scriptText[jsonBeginRange.lowerBound...]
+      guard let jsonEndRange = jsonSuffix.range(of: "\\x7d';") else {
+        return nil
+      }
+      let jsonString = jsonSuffix[..<jsonEndRange.lowerBound]
+      print(jsonString)
+      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [String: Any] else {
+        return nil
+      }
+      
+      
+      return nil
+    
+    }
+    
+    return nil
   }
 }
 

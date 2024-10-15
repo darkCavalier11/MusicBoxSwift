@@ -28,7 +28,6 @@ extension Logger {
   }
 }
 
-
 extension URLSession: MusicSession {
   enum YoutubeInterfaceURLSessionError: Error {
     case invalidURL

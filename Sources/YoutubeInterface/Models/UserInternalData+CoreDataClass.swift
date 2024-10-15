@@ -12,15 +12,11 @@ import os
 
 @objc(UserInternalData)
 public class UserInternalData: NSManagedObject {
-  private lazy var coreDataStack: CoreDataStack = {
-    return CoreDataStack(modelName: "MusicSession")
-  }()
+  static private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreData/UserInternalData")
   
-  private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreData/UserInternalData")
-  
-  func getLatestUserRequestPayload() -> Data? {
+  static func getLatestUserRequestPayload(context: NSManagedObjectContext) -> Data? {
     let request = UserInternalData.fetchRequest()
-    let results = try? coreDataStack.managedObjectContext.fetch(request)
+    let results = try? context.fetch(request)
     
     guard results != nil, results!.count > 0 else {
       logger.debug("Request payload not found in db")
@@ -31,10 +27,10 @@ public class UserInternalData: NSManagedObject {
     return results?.first?.payload
   }
   
-  func saveLatestUserRequestPayload(_ payload: Data) {
-    let userInternalData = UserInternalData(context: coreDataStack.managedObjectContext)
+  static func saveLatestUserRequestPayload(_ payload: Data, context: NSManagedObjectContext) {
+    let userInternalData = UserInternalData(context: context)
     userInternalData.payload = payload
     logger.debug("Saving user internal data payload")
-    try? coreDataStack.managedObjectContext.save()
+    try? context.save()
   }
 }

@@ -41,6 +41,7 @@ extension URLSession: MusicSession {
   
   private func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
+    
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }

@@ -9,8 +9,6 @@ import Foundation
 import os
 import SwiftSoup
 
-fileprivate let logger = Logger(subsystem: "com.youtube.interface", category: "Networking")
-
 private struct HTTPMusicAPIPaths {
   static let requestPayload = "https://www.youtube.com/"
   static let homeScreenMusicList = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false"
@@ -29,6 +27,15 @@ extension Logger {
 }
 
 extension URLSession: MusicSession {
+  private var coreDataStack : CoreDataStack {
+    CoreDataStack(modelName: "MusicSession")
+  }
+  
+  private var logger: Logger {
+    Logger(subsystem: "com.youtube.interface", category: "Networking")
+  }
+  
+  
   enum YoutubeInterfaceURLSessionError: Error {
     case invalidURL
     case errorInApiRequest(String)
@@ -41,7 +48,10 @@ extension URLSession: MusicSession {
   
   private func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
-    
+    if let payloadData = UserInternalData.getLatestUserRequestPayload(context: coreDataStack.managedObjectContext) {
+      let json = try? JSONSerialization.jsonObject(with: payloadData)
+      return json as? [String: Any]
+    }
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }
@@ -93,6 +103,9 @@ extension URLSession: MusicSession {
       let contextWrap: [String: Any] = [
         "context": context.first! as [String: Any],
       ]
+      if let jsonData = try? JSONSerialization.data(withJSONObject: contextWrap, options: []) {
+        UserInternalData.saveLatestUserRequestPayload(jsonData, context: coreDataStack.managedObjectContext)
+      }
       return contextWrap
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription, privacy: .public)")

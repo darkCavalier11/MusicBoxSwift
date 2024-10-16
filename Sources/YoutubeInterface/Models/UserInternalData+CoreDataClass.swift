@@ -10,9 +10,9 @@ import Foundation
 import CoreData
 import os
 
-@objc(UserInternalData)
+
 public class UserInternalData: NSManagedObject {
-  static private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreData/UserInternalData")
+  static private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreDataStack")
   
   static func getLatestUserRequestPayload(context: NSManagedObjectContext) -> Data? {
     let request = UserInternalData.fetchRequest()
@@ -23,7 +23,7 @@ public class UserInternalData: NSManagedObject {
       return nil
     }
     
-    logger.debug("Found request payload in db")
+    logger.debug("Found request \(results!.count) payload(s) in db")
     return results?.first?.payload
   }
   

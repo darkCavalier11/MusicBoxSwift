@@ -19,7 +19,10 @@ public class CoreDataStack {
   }
   
   private lazy var storeContainer: NSPersistentContainer = {
-    let container = NSPersistentContainer(name: modelName)
+    let bundle = Bundle.module
+    let moduleURL = bundle.url(forResource: modelName, withExtension: "mom")!
+    let model = NSManagedObjectModel(contentsOf: moduleURL)!
+    let container = NSPersistentContainer(name: modelName, managedObjectModel: model)
     container.loadPersistentStores { _, error in
       if let error {
         logger.error("Failed to load persistent stores: \(error)")

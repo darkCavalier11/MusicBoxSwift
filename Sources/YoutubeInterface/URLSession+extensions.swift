@@ -28,7 +28,7 @@ extension Logger {
 
 extension URLSession: MusicSession {
   private var coreDataStack : CoreDataStack {
-    CoreDataStack(modelName: "MusicSession")
+    CoreDataStack(modelName: "MusicSessionModel")
   }
   
   private var logger: Logger {
@@ -406,7 +406,6 @@ extension URLSession: MusicSession {
     
     var request = URLRequest(url: url)
     request.setValue("Cgtfa0laMWZvTHlmYyjeiqS4BjIKCgJJThIEGgAgRA%3D%3D", forHTTPHeaderField: "X-Goog-Visitor-Id")
-    
     guard let (data, response) = try? await self.data(from: url) else {
       return nil
     }
@@ -418,8 +417,14 @@ extension URLSession: MusicSession {
     guard response.statusCode == 200 else {
       return nil
     }
-    guard var htmlString = String(data: data, encoding: .utf8) else {
+    guard let htmlString = String(data: data, encoding: .utf8) else {
       return nil
+    }
+    print(FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!)
+    if #available(macOS 13.0, *) {
+      try? data.write(to: FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!.appending(path: "main.html"))
+    } else {
+      // Fallback on earlier versions
     }
     
     let htmlDocument = try? SwiftSoup.parse(htmlString)
@@ -435,18 +440,18 @@ extension URLSession: MusicSession {
         return nil
       }
       
-      
-      
       let jsonSuffix = scriptText[jsonBeginRange.lowerBound...]
       guard let jsonEndRange = jsonSuffix.range(of: "\\x7d';") else {
         return nil
       }
-      let jsonString = jsonSuffix[..<jsonEndRange.lowerBound]
-      print(jsonString)
-      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [String: Any] else {
+      var jsonString = String(jsonSuffix[..<jsonEndRange.lowerBound])
+      jsonString += "\\x7d"
+      jsonString = jsonString.replaceAllHexOccurances()
+      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) else {
         return nil
       }
       
+      print(json)
       
       return nil
     
@@ -459,6 +464,17 @@ extension URLSession: MusicSession {
 private extension String {
   /// 01:30 -> 90
   /// 01:02:03 -> 3723
+  
+  var asciiDict: [String: String] {
+    var d = [String: String]()
+    for i in 30..<128 {
+      let scalar = UnicodeScalar(i)
+      let x = String(i, radix: 16)
+      d["\\x" + x] = String(scalar!)
+    }
+    return d
+  }
+  
   func convertDurationStringToSeconds() -> Int {
     let components = self.split(separator: ":").reversed()
     var totalDurationInSeconds = 0
@@ -468,5 +484,13 @@ private extension String {
       totalDurationInSeconds += componentValue * Int(powl(60, Double(index)))
     }
     return totalDurationInSeconds
+  }
+  
+  func replaceAllHexOccurances() -> String {
+    var newValue = self
+    for (key, value) in asciiDict {
+      newValue = newValue.replacingOccurrences(of: key, with: value)
+    }
+    return newValue
   }
 }

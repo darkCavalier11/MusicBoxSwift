@@ -496,28 +496,44 @@ extension URLSession: MusicSession {
         logger.error("continuationContent not found")
         return nil
       }
-      
-      for item in continuationContent {
+      // TODO: - Extract other continuation key for different other texts thats related to music like Asian music or artist name
+      let musicItem = continuationContent.compactMap { item -> [String: Any]? in
         guard let chipCloudChipRenderer = item["chipCloudChipRenderer"] as? [String: Any] else {
-          continue
+          return nil
         }
         
         guard let text = chipCloudChipRenderer["text"] as? [String: Any] else {
-          continue
+          return nil
         }
         
         guard let runs = text["runs"] as? [[String: String]] else {
-          continue
+          return nil
         }
         
+        guard let navigationEndpoint = chipCloudChipRenderer["navigationEndpoint"] as? [String: Any] else {
+          return nil
+        }
         
+        guard let continuationCommand = navigationEndpoint["continuationCommand"] as? [String: Any] else {
+          return nil
+        }
         
-        print(runs)
+        guard let token = continuationCommand["token"] as? String else {
+          return nil
+        }
+        if runs.first?["text"] == "Music" {
+          return ["Music": token]
+        }
+        return nil
       }
+      
+      return musicItem.count > 0 ? musicItem.first : [:]
+    }
+    guard let context = context, context.count > 0, let token = context.first?["token"] as? String else {
       return nil
     }
     
-    return nil
+    return token
   }
 }
 

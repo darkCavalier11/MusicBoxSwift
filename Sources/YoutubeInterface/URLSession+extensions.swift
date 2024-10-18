@@ -187,10 +187,8 @@ extension URLSession: MusicSession {
     }
     
     let musicContinuationKey = await getMusicContinuationToken()
-    print(musicContinuationKey)
-//    result["continuation"] = musicContinuationKey
-//    print(result)
-    return
+    
+    result["continuation"] = musicContinuationKey
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
       return
@@ -210,9 +208,29 @@ extension URLSession: MusicSession {
         return
       }
       
-      guard let _ = try? JSONSerialization.jsonObject(with: data) else {
+      guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return
+      }
+      
+      guard let onResponseReceivedActions = json["onResponseReceivedActions"] as? [Any] else {
+        return
+      }
+      
+      guard onResponseReceivedActions.count > 0, let primaryItem = onResponseReceivedActions.first as? [String: Any] else {
+        return
+      }
+      
+      guard let reloadContinuationItemsCommand = primaryItem["reloadContinuationItemsCommand"] as? [String: Any] else {
+        return
+      }
+      
+      guard let continuationItems = reloadContinuationItemsCommand["continuationItems"] as? [Any] else {
+        return
+      }
+      
+      let musicItem = continuationItems.compactMap { (item) -> MusicItem? in
+        return nil
       }
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")

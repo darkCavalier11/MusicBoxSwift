@@ -398,6 +398,7 @@ extension URLSession: MusicSession {
     }
   }
   
+  // TODO: - Refactor code for better parsing
   private func getMusicContinuationToken() async -> String? {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.musicContinuationToken) else {
@@ -420,12 +421,6 @@ extension URLSession: MusicSession {
     guard let htmlString = String(data: data, encoding: .utf8) else {
       return nil
     }
-    print(FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!)
-    if #available(macOS 13.0, *) {
-      try? data.write(to: FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!.appending(path: "main.html"))
-    } else {
-      // Fallback on earlier versions
-    }
     
     let htmlDocument = try? SwiftSoup.parse(htmlString)
     let body = htmlDocument?.body()
@@ -447,14 +442,79 @@ extension URLSession: MusicSession {
       var jsonString = String(jsonSuffix[..<jsonEndRange.lowerBound])
       jsonString += "\\x7d"
       jsonString = jsonString.replaceAllHexOccurances()
-      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) else {
+      
+      guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [String: Any] else {
+        logger.error("Error parsing json getting music CONTINUATION key")
         return nil
       }
       
-      print(json)
+      guard let contents = json["contents"] as? [String: Any] else {
+        logger.error("contents not found")
+        return nil
+      }
       
+      guard let scbrRenderer = contents["singleColumnBrowseResultsRenderer"] as? [String: Any] else {
+        logger.error("singleColumnBrowseResultsRenderer not found")
+        return nil
+      }
+      
+      guard let tabs = scbrRenderer["tabs"] as? [Any] else {
+        logger.error("tabs not found")
+        return nil
+      }
+      
+      guard let tabRendererDict = tabs.first as? [String: Any] else {
+        return nil
+      }
+
+      guard let tabRenderer = tabRendererDict["tabRenderer"] as? [String: Any] else {
+        logger.error("tabRenderer not found")
+        return nil
+      }
+      
+      guard let tabContent = tabRenderer["content"] as? [String: Any] else {
+        logger.error("tab content is empty")
+        return nil
+      }
+      
+      guard let richGridRenderer = tabContent["richGridRenderer"] as? [String: Any] else {
+        logger.error("richGridRenderer is empty")
+        return nil
+      }
+      
+      guard let header = richGridRenderer["header"] as? [String: Any] else {
+        logger.error("header not found")
+        return nil
+      }
+      
+      guard let feedFilterChipBarRenderer = header["feedFilterChipBarRenderer"] as? [String: Any] else {
+        logger.error("feedFilterChipBarRenderer not found")
+        return nil
+      }
+      
+      guard let continuationContent = feedFilterChipBarRenderer["contents"] as? [[String: Any]] else {
+        logger.error("continuationContent not found")
+        return nil
+      }
+      
+      for item in continuationContent {
+        guard let chipCloudChipRenderer = item["chipCloudChipRenderer"] as? [String: Any] else {
+          continue
+        }
+        
+        guard let text = chipCloudChipRenderer["text"] as? [String: Any] else {
+          continue
+        }
+        
+        guard let runs = text["runs"] as? [[String: String]] else {
+          continue
+        }
+        
+        
+        
+        print(runs)
+      }
       return nil
-    
     }
     
     return nil

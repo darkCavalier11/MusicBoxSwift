@@ -225,15 +225,49 @@ extension URLSession: MusicSession {
         return
       }
       
-      guard let continuationItems = reloadContinuationItemsCommand["continuationItems"] as? [Any] else {
+      guard let continuationItems = reloadContinuationItemsCommand["continuationItems"] as? [[String: Any]] else {
         return
       }
       
       let musicItem = continuationItems.compactMap { (item) -> MusicItem? in
-        return nil
+        let richItemRenderer = item["richItemRenderer"] as? [String: Any]
+        let content = richItemRenderer?["content"] as? [String: Any]
+        
+        let videoRenderer = content?["videoRenderer"] as? [String: Any]
+        guard let musicId = videoRenderer?["videoId"] as? String else {
+          return nil
+        }
+        
+        let thumbnails = videoRenderer?["thumbnail"] as? [String: Any]
+        let thumbnailItems = thumbnails?["thumbnails"] as? [Any]
+        
+        let smallestThumbnail = (thumbnailItems?.first as? [String: Any])?["url"] as? String
+        let largestThumbnail = (thumbnailItems?.last as? [String: Any])?["url"] as? String
+        
+        let titleDict = videoRenderer?["title"] as? [String: Any]
+        
+        let runs = titleDict?["runs"] as? [Any]
+        let title = (runs?.first as? [String: Any])?["text"] as? String ?? "-"
+        
+        let longBylineText = videoRenderer?["longBylineText"] as? [String: Any]
+        let longRuns = longBylineText?["runs"] as? [Any]
+        
+        let publisherTitle = (longRuns?.first as? [String: Any])?["text"] as? String ?? ""
+        
+        let lengthText = videoRenderer?["lengthText"] as? [String: Any]
+        let duration = lengthText?["simpleText"] as? String ?? "00:00"
+        
+        return MusicItem(
+          title: title,
+          publisherTitle: publisherTitle,
+          runningDurationInSeconds: duration.convertDurationStringToSeconds(),
+          musicId: musicId,
+          smallestThumbnail: smallestThumbnail,
+          largestThumbnail: largestThumbnail
+        )
       }
     } catch {
-      logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
+      logger.error("\(#function) -> \(#line) -> Error getting homescreen music items. \(error.localizedDescription)")
     }
   }
   
@@ -327,8 +361,8 @@ extension URLSession: MusicSession {
           publisherTitle: publisherTitle ?? "-",
           runningDurationInSeconds: runningDurationInSeconds,
           musicId: musicId,
-          smallestThumbnail: smallestThumbnail ?? "https://img.icons8.com/?size=50&id=88618&format=png&color=000000",
-          largestThumbnail: largestThumbnail ?? "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
+          smallestThumbnail: smallestThumbnail,
+          largestThumbnail: largestThumbnail
         )
         
         musicItems.append(musicItem)

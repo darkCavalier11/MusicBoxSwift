@@ -181,16 +181,21 @@ extension URLSession: MusicSession {
     var request = URLRequest(url: url, timeoutInterval: 10)
     request.httpMethod = "POST"
     
-    guard let result = await getClientRequestPayload() else {
+    guard var result = await getClientRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload")
       return
     }
     
+    let musicContinuationKey = await getMusicContinuationToken()
+    print(musicContinuationKey)
+//    result["continuation"] = musicContinuationKey
+//    print(result)
+    return
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
       return
     }
-    await getMusicContinuationToken()
+    
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = httpBody
     do {
@@ -406,6 +411,7 @@ extension URLSession: MusicSession {
     }
     
     var request = URLRequest(url: url)
+    // TODO: - Remove debug header key
     request.setValue("Cgtfa0laMWZvTHlmYyjeiqS4BjIKCgJJThIEGgAgRA%3D%3D", forHTTPHeaderField: "X-Goog-Visitor-Id")
     guard let (data, response) = try? await self.data(from: url) else {
       return nil
@@ -429,7 +435,6 @@ extension URLSession: MusicSession {
       guard let scriptText = try? scriptElement.html(), scriptText.contains("responseContext") else {
         return nil
       }
-      
       
       guard let jsonBeginRange = scriptText.range(of: "\\x7b\\x22responseContext\\x22:\\x7b") else {
         return nil
@@ -522,13 +527,14 @@ extension URLSession: MusicSession {
           return nil
         }
         if runs.first?["text"] == "Music" {
-          return ["Music": token]
+          return ["token": token]
         }
         return nil
       }
       
       return musicItem.count > 0 ? musicItem.first : [:]
     }
+    
     guard let context = context, context.count > 0, let token = context.first?["token"] as? String else {
       return nil
     }

@@ -81,7 +81,6 @@ extension URLSession {
         let musicItem = extractMusicItemFromVideoRenderer(videoRenderer: videoRenderer)
         return musicItem
       }
-      
       return musicItems
     } catch {
       logger.error("\(#function) -> \(#line) -> Error getting homescreen music items. \(error.localizedDescription)")

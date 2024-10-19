@@ -39,5 +39,6 @@ func TestGetMusicStreamingURL() async {
 @Test("Getting request payload")
 func TestGetRequestPayload() async {
   let session = URLSession.shared
-  await session.getClientRequestPayload()
+  let payload = await session.getClientRequestPayload()
+  #expect(payload != nil)
 }

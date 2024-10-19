@@ -11,7 +11,7 @@ protocol MusicSession {
   func getMusicStreamingURL(musicId: String) async
 }
 
-struct YoutubeInterface {
+struct MusicBox {
   let musicSession: MusicSession
   
   init(musicSession: MusicSession = URLSession.shared) {

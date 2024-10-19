@@ -35,17 +35,6 @@ extension URLSession: MusicSession {
     Logger(subsystem: "com.youtube.interface", category: "Networking")
   }
   
-  
-  enum YoutubeInterfaceURLSessionError: Error {
-    case invalidURL
-    case errorInApiRequest(String)
-    case invalidResponse
-    case invalidStatusCode(Int)
-    case invalidData
-    case parsingErrorInvalidHTML
-    case notFoundParsingData
-  }
-  
   private func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
     if let payloadData = UserInternalData.getLatestUserRequestPayload(context: coreDataStack.managedObjectContext) {
@@ -581,39 +570,5 @@ extension URLSession: MusicSession {
     }
     
     return token
-  }
-}
-
-private extension String {
-  /// 01:30 -> 90
-  /// 01:02:03 -> 3723
-  
-  var asciiDict: [String: String] {
-    var d = [String: String]()
-    for i in 30..<128 {
-      let scalar = UnicodeScalar(i)
-      let x = String(i, radix: 16)
-      d["\\x" + x] = String(scalar!)
-    }
-    return d
-  }
-  
-  func convertDurationStringToSeconds() -> Int {
-    let components = self.split(separator: ":").reversed()
-    var totalDurationInSeconds = 0
-    
-    for (index, component) in components.enumerated() {
-      let componentValue = Int(component) ?? 0
-      totalDurationInSeconds += componentValue * Int(powl(60, Double(index)))
-    }
-    return totalDurationInSeconds
-  }
-  
-  func replaceAllHexOccurances() -> String {
-    var newValue = self
-    for (key, value) in asciiDict {
-      newValue = newValue.replacingOccurrences(of: key, with: value)
-    }
-    return newValue
   }
 }

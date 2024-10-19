@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 @testable import YoutubeInterface
 
 
@@ -33,4 +34,10 @@ func TestGetMusicSearchResults() async throws {
 func TestGetMusicStreamingURL() async {
   let yti = MusicBox()
   await yti.musicSession.getMusicStreamingURL(musicId: "c3XOtUOdxlE")
+}
+
+@Test("Getting request payload")
+func TestGetRequestPayload() async {
+  let session = URLSession.shared
+  await session.getClientRequestPayload()
 }

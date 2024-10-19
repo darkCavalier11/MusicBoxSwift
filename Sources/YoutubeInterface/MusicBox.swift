@@ -4,12 +4,6 @@ import SwiftSoup
 import Foundation
 import os
 
-protocol MusicSession {
-  func getHomeScreenMusicList() async -> [MusicItem]
-  func getTypeAheadSearchResult(query: String) async -> [String]
-  func getMusicSearchResults(query: String) async -> [MusicItem]
-  func getMusicStreamingURL(musicId: String) async
-}
 
 struct MusicBox {
   let musicSession: MusicSession
@@ -18,5 +12,3 @@ struct MusicBox {
     self.musicSession = musicSession
   }
 }
-
-

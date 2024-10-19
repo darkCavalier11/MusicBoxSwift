@@ -5,7 +5,7 @@ import Foundation
 import os
 
 protocol MusicSession {
-  func getHomeScreenMusicList() async
+  func getHomeScreenMusicList() async -> [MusicItem]
   func getTypeAheadSearchResult(query: String) async -> [String]
   func getMusicSearchResults(query: String) async -> [MusicItem]
   func getMusicStreamingURL(musicId: String) async

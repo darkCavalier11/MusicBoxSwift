@@ -172,10 +172,10 @@ extension URLSession: MusicSession {
     }
   }
   
-  func getHomeScreenMusicList() async {
+  func getHomeScreenMusicList() async -> [MusicItem]  {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList) else {
-      return
+      return []
     }
     
     var request = URLRequest(url: url, timeoutInterval: 10)
@@ -183,7 +183,7 @@ extension URLSession: MusicSession {
     
     guard var result = await getClientRequestPayload() else {
       logger.error("\(#function) -> \(#line) -> Error getting request payload")
-      return
+      return []
     }
     
     let musicContinuationKey = await getMusicContinuationToken()
@@ -191,7 +191,7 @@ extension URLSession: MusicSession {
     result["continuation"] = musicContinuationKey
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       logger.error("\(#function) -> \(#line) -> Error converting request payload to Data()")
-      return
+      return []
     }
     
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -200,75 +200,51 @@ extension URLSession: MusicSession {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {
         logger.error("\(#function) -> \(#line) -> Invalid response from server")
-        return
+        return []
       }
       
       guard response.statusCode == 200 else {
         logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
-        return
+        return []
       }
       
       guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
-        return
+        return []
       }
       
       guard let onResponseReceivedActions = json["onResponseReceivedActions"] as? [Any] else {
-        return
+        return []
       }
       
       guard onResponseReceivedActions.count > 0, let primaryItem = onResponseReceivedActions.first as? [String: Any] else {
-        return
+        return []
       }
       
       guard let reloadContinuationItemsCommand = primaryItem["reloadContinuationItemsCommand"] as? [String: Any] else {
-        return
+        return []
       }
       
       guard let continuationItems = reloadContinuationItemsCommand["continuationItems"] as? [[String: Any]] else {
-        return
+        return []
       }
       
-      let musicItem = continuationItems.compactMap { (item) -> MusicItem? in
+      let musicItems = continuationItems.compactMap { (item) -> MusicItem? in
         let richItemRenderer = item["richItemRenderer"] as? [String: Any]
         let content = richItemRenderer?["content"] as? [String: Any]
         
-        let videoRenderer = content?["videoRenderer"] as? [String: Any]
-        guard let musicId = videoRenderer?["videoId"] as? String else {
+        guard let videoWithContextRenderer = content?["videoWithContextRenderer"] as? [String: Any] else {
           return nil
         }
+        let musicItem = extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: videoWithContextRenderer)
         
-        let thumbnails = videoRenderer?["thumbnail"] as? [String: Any]
-        let thumbnailItems = thumbnails?["thumbnails"] as? [Any]
-        
-        let smallestThumbnail = (thumbnailItems?.first as? [String: Any])?["url"] as? String
-        let largestThumbnail = (thumbnailItems?.last as? [String: Any])?["url"] as? String
-        
-        let titleDict = videoRenderer?["title"] as? [String: Any]
-        
-        let runs = titleDict?["runs"] as? [Any]
-        let title = (runs?.first as? [String: Any])?["text"] as? String ?? "-"
-        
-        let longBylineText = videoRenderer?["longBylineText"] as? [String: Any]
-        let longRuns = longBylineText?["runs"] as? [Any]
-        
-        let publisherTitle = (longRuns?.first as? [String: Any])?["text"] as? String ?? ""
-        
-        let lengthText = videoRenderer?["lengthText"] as? [String: Any]
-        let duration = lengthText?["simpleText"] as? String ?? "00:00"
-        
-        return MusicItem(
-          title: title,
-          publisherTitle: publisherTitle,
-          runningDurationInSeconds: duration.convertDurationStringToSeconds(),
-          musicId: musicId,
-          smallestThumbnail: smallestThumbnail,
-          largestThumbnail: largestThumbnail
-        )
+        return musicItem
       }
+      return musicItems
     } catch {
       logger.error("\(#function) -> \(#line) -> Error getting homescreen music items. \(error.localizedDescription)")
     }
+    return []
   }
   
   func getMusicSearchResults(query: String) async -> [MusicItem] {
@@ -326,44 +302,10 @@ extension URLSession: MusicSession {
           continue
         }
         let videoWithContextRenderer = musicContent["videoWithContextRenderer"] as? [String: Any]
-        let headline = videoWithContextRenderer?["headline"] as? [String: Any]
-        guard let runs = headline?["runs"] as? [[String: String]], runs.count > 0 else {
+        
+        guard let musicItem = extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: videoWithContextRenderer) else {
           continue
         }
-        
-        let title = (runs[0]["text"]) ?? "-"
-        
-        let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
-        let thumbnailList = thumbnail?["thumbnails"] as? [Any]
-        
-        let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
-        let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
-        
-        let shortBylineText = videoWithContextRenderer?["shortBylineText"] as? [String: Any]
-        guard let shortRuns = shortBylineText?["runs"] as? [[String: Any]], shortRuns.count > 0 else {
-          continue
-        }
-        
-        let publisherTitle = shortRuns[0]["text"] as? String
-        
-        let lengthText = videoWithContextRenderer?["lengthText"] as? [String: Any]
-        guard let lengthRuns = lengthText?["runs"] as? [[String: Any]], lengthRuns.count > 0 else {
-          continue
-        }
-        
-        let runningDuration = lengthRuns[0]["text"] as? String
-        let runningDurationInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
-        
-        let musicId = (videoWithContextRenderer?["videoId"] as? String) ?? "-"
-        
-        let musicItem = MusicItem(
-          title: title,
-          publisherTitle: publisherTitle ?? "-",
-          runningDurationInSeconds: runningDurationInSeconds,
-          musicId: musicId,
-          smallestThumbnail: smallestThumbnail,
-          largestThumbnail: largestThumbnail
-        )
         
         musicItems.append(musicItem)
       }
@@ -372,6 +314,49 @@ extension URLSession: MusicSession {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription)")
       return []
     }
+  }
+  
+  private func extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: [String: Any]?) -> MusicItem? {
+    let headline = videoWithContextRenderer?["headline"] as? [String: Any]
+    guard let runs = headline?["runs"] as? [[String: String]], runs.count > 0 else {
+      return nil
+    }
+    
+    let title = (runs[0]["text"]) ?? "-"
+    
+    let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
+    let thumbnailList = thumbnail?["thumbnails"] as? [Any]
+    
+    let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
+    let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
+    
+    let shortBylineText = videoWithContextRenderer?["shortBylineText"] as? [String: Any]
+    guard let shortRuns = shortBylineText?["runs"] as? [[String: Any]], shortRuns.count > 0 else {
+      return nil
+    }
+    
+    let publisherTitle = shortRuns[0]["text"] as? String
+    
+    let lengthText = videoWithContextRenderer?["lengthText"] as? [String: Any]
+    guard let lengthRuns = lengthText?["runs"] as? [[String: Any]], lengthRuns.count > 0 else {
+      return nil
+    }
+    
+    let runningDuration = lengthRuns[0]["text"] as? String
+    let runningDurationInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
+    
+    let musicId = (videoWithContextRenderer?["videoId"] as? String) ?? "-"
+    
+    let musicItem = MusicItem(
+      title: title,
+      publisherTitle: publisherTitle ?? "-",
+      runningDurationInSeconds: runningDurationInSeconds,
+      musicId: musicId,
+      smallestThumbnail: smallestThumbnail,
+      largestThumbnail: largestThumbnail
+    )
+    
+    return musicItem
   }
   
   func getMusicStreamingURL(musicId: String) async  {

@@ -6,6 +6,7 @@ import Testing
 func TestGetHomescreenMusicItems() async throws {
   let yti = YoutubeInterface()
   let result = await yti.musicSession.getHomeScreenMusicList()
+  #expect(result.count > 0)
 }
 
 @Test("Getting search result suggestion for query")

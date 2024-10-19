@@ -186,7 +186,12 @@ extension URLSession: MusicSession {
       return []
     }
     
-    let musicContinuationKey = await getMusicContinuationToken()
+    guard let context = result["context"] as? [String: Any],
+          let client = context["client"] as? [String: Any],
+          let visitorId = client["visitorData"] as? String else {
+      return []
+    }
+    let musicContinuationKey = await getMusicContinuationToken(visitorId: visitorId)
     
     result["continuation"] = musicContinuationKey
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
@@ -441,15 +446,14 @@ extension URLSession: MusicSession {
   }
   
   // TODO: - Refactor code for better parsing
-  private func getMusicContinuationToken() async -> String? {
+  private func getMusicContinuationToken(visitorId: String) async -> String? {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.musicContinuationToken) else {
       return nil
     }
     
     var request = URLRequest(url: url)
-    // TODO: - Remove debug header key
-    request.setValue("Cgtfa0laMWZvTHlmYyjeiqS4BjIKCgJJThIEGgAgRA%3D%3D", forHTTPHeaderField: "X-Goog-Visitor-Id")
+    request.setValue(visitorId, forHTTPHeaderField: "X-Goog-Visitor-Id")
     guard let (data, response) = try? await self.data(from: url) else {
       return nil
     }

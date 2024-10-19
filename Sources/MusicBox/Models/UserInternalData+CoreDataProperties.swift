@@ -1,8 +1,8 @@
 //
 //  UserInternalData+CoreDataProperties.swift
-//  YoutubeInterface
+//  MusicBox
 //
-//  Created by Sumit Pradhan on 15/10/24.
+//  Created by Sumit Pradhan on 19/10/24.
 //
 //
 

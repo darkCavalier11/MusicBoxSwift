@@ -27,6 +27,7 @@ extension URLSession {
           let visitorId = client["visitorData"] as? String else {
       return []
     }
+
     let musicContinuationKey = await getMusicContinuationToken(visitorId: visitorId)
     
     result["continuation"] = musicContinuationKey
@@ -37,6 +38,7 @@ extension URLSession {
     
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.httpBody = httpBody
+    
     do {
       let (data, response) = try await data(for: request)
       guard let response = response as? HTTPURLResponse else {

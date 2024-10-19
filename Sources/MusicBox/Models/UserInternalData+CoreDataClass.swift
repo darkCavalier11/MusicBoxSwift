@@ -1,8 +1,8 @@
 //
 //  UserInternalData+CoreDataClass.swift
-//  YoutubeInterface
+//  MusicBox
 //
-//  Created by Sumit Pradhan on 15/10/24.
+//  Created by Sumit Pradhan on 19/10/24.
 //
 //
 
@@ -24,7 +24,7 @@ public class UserInternalData: NSManagedObject {
     }
     
     logger.debug("Found request \(results!.count) payload(s) in db")
-    return results?.first?.payload
+    return results?.last?.payload
   }
   
   static func saveLatestUserRequestPayload(_ payload: Data, context: NSManagedObjectContext) {

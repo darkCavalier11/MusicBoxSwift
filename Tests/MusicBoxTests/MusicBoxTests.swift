@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import YoutubeInterface
+@testable import MusicBox
 
 
 @Test("Getting homescreen music items")

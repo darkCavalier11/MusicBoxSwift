@@ -20,10 +20,8 @@ extension URLSession {
   // TODO: remove public
   public func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
-//    if let payloadData = UserInternalData.getLatestUserRequestPayload(context: coreDataStack.managedObjectContext) {
-//      let json = try? JSONSerialization.jsonObject(with: payloadData)
-//      return json as? [String: Any]
-//    }
+
+    
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }
@@ -90,6 +88,10 @@ extension URLSession {
         logger.error("\(#function) -> \(#line) -> Context request payload not found")
         return nil
       }
+      if let data = try? JSONSerialization.data(withJSONObject: context.first) {
+        UserInternalData.saveLatestUserRequestPayload(data, context: coreDataStack.managedObjectContext)
+      }
+      
       return context.first
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription, privacy: .public)")
@@ -233,5 +235,4 @@ extension URLSession {
     
     return token
   }
-  
 }

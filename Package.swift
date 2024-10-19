@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "YoutubeInterface",
+    name: "MusicBox",
     platforms: [
       .iOS(.v14),
       .macOS(.v11),
@@ -17,8 +17,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "YoutubeInterface",
-            targets: ["YoutubeInterface"]),
+            name: "MusicBox",
+            targets: ["MusicBox"]),
     ],
     dependencies: [
       .package(url: "https://github.com/scinfu/SwiftSoup.git", from: "2.6.0"),
@@ -27,10 +27,10 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-          name: "YoutubeInterface", dependencies: ["SwiftSoup"]),
+          name: "MusicBox", dependencies: ["SwiftSoup"]),
         .testTarget(
-            name: "YoutubeInterfaceTests",
-            dependencies: ["YoutubeInterface"]
+            name: "MusicBoxTests",
+            dependencies: ["MusicBox"]
         ),
     ]
 )

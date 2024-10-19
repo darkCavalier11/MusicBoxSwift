@@ -20,10 +20,10 @@ extension URLSession {
   // TODO: remove public
   public func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
-    if let payloadData = UserInternalData.getLatestUserRequestPayload(context: coreDataStack.managedObjectContext) {
-      let json = try? JSONSerialization.jsonObject(with: payloadData)
-      return json as? [String: Any]
-    }
+//    if let payloadData = UserInternalData.getLatestUserRequestPayload(context: coreDataStack.managedObjectContext) {
+//      let json = try? JSONSerialization.jsonObject(with: payloadData)
+//      return json as? [String: Any]
+//    }
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }
@@ -68,21 +68,29 @@ extension URLSession {
         guard let json = try? JSONSerialization.jsonObject(with: String(jsonString).data(using: .utf8)!) as? [String: Any] else {
           return nil
         }
-        return json["INNERTUBE_CONTEXT"] as? [String: Any]
+        guard let context = json["INNERTUBE_CONTEXT"] as? [String: Any] else {
+          return nil
+        }
+        guard var client = context["client"] as? [String: Any] else {
+          return nil
+        }
+        /// Making client type to WEB instead of MWEB to
+        /// 1. Home screen response will returns more music item
+        /// 2. Same for paginated response
+        client["clientName"] = "WEB"
+        
+        return [
+          "context": [
+            "client": client
+          ]
+        ]
       }
       
       guard let context, !context.isEmpty else {
         logger.error("\(#function) -> \(#line) -> Context request payload not found")
         return nil
       }
-      let contextWrap: [String: Any] = [
-        "context": context.first! as [String: Any],
-      ]
-      if let jsonData = try? JSONSerialization.data(withJSONObject: contextWrap, options: []) {
-        UserInternalData.saveLatestUserRequestPayload(jsonData, context: coreDataStack.managedObjectContext)
-      }
-      
-      return contextWrap
+      return context.first
     } catch {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription, privacy: .public)")
       return nil

@@ -82,36 +82,33 @@ extension URLSession: MusicSession {
     }
   }
   
-  func extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: [String: Any]?) -> MusicItem? {
-    let headline = videoWithContextRenderer?["headline"] as? [String: Any]
-    guard let runs = headline?["runs"] as? [[String: String]], runs.count > 0 else {
+  func extractMusicItemFromVideoRenderer(videoRenderer: [String: Any]?) -> MusicItem? {
+    let titleDict = videoRenderer?["title"] as? [String: Any]
+    guard let runs = titleDict?["runs"] as? [[String: String]], runs.count > 0 else {
       return nil
     }
     
     let title = (runs[0]["text"]) ?? "-"
     
-    let thumbnail = videoWithContextRenderer?["thumbnail"] as? [String: Any]
+    let thumbnail = videoRenderer?["thumbnail"] as? [String: Any]
     let thumbnailList = thumbnail?["thumbnails"] as? [Any]
     
     let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
     let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
     
-    let shortBylineText = videoWithContextRenderer?["shortBylineText"] as? [String: Any]
-    guard let shortRuns = shortBylineText?["runs"] as? [[String: Any]], shortRuns.count > 0 else {
+    let longBylineText = videoRenderer?["longBylineText"] as? [String: Any]
+    guard let longRuns = longBylineText?["runs"] as? [[String: Any]], longRuns.count > 0 else {
       return nil
     }
     
-    let publisherTitle = shortRuns[0]["text"] as? String
+    let publisherTitle = longRuns[0]["text"] as? String
     
-    let lengthText = videoWithContextRenderer?["lengthText"] as? [String: Any]
-    guard let lengthRuns = lengthText?["runs"] as? [[String: Any]], lengthRuns.count > 0 else {
-      return nil
-    }
+    let lengthText = videoRenderer?["lengthText"] as? [String: Any]
     
-    let runningDuration = lengthRuns[0]["text"] as? String
+    let runningDuration = lengthText?["simpleText"] as? String
     let runningDurationInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
     
-    let musicId = (videoWithContextRenderer?["videoId"] as? String) ?? "-"
+    let musicId = (videoRenderer?["videoId"] as? String) ?? "-"
     
     let musicItem = MusicItem(
       title: title,

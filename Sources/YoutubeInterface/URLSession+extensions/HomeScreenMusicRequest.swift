@@ -74,11 +74,11 @@ extension URLSession {
         let richItemRenderer = item["richItemRenderer"] as? [String: Any]
         let content = richItemRenderer?["content"] as? [String: Any]
         
-        guard let videoWithContextRenderer = content?["videoWithContextRenderer"] as? [String: Any] else {
+        guard let videoRenderer = content?["videoRenderer"] as? [String: Any] else {
           return nil
         }
         
-        let musicItem = extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: videoWithContextRenderer)
+        let musicItem = extractMusicItemFromVideoRenderer(videoRenderer: videoRenderer)
         return musicItem
       }
       

@@ -108,22 +108,26 @@ extension URLSession {
       }
       
       let parentContent = (json["contents"] as? [String: Any])
-      let sectionListRenderer = parentContent?["sectionListRenderer"] as? [String: Any]
-      let primaryContents = sectionListRenderer?["contents"] as? [Any]
-      let itemSectionRenderer = (primaryContents?[0] as? [String: Any])?["itemSectionRenderer"] as? [String: Any]
-      guard let contents = itemSectionRenderer?["contents"] as? [Any] else {
+      
+      let twoColumnSearchResultsRenderer = parentContent?["twoColumnSearchResultsRenderer"] as? [String: Any]
+      let primaryContents = twoColumnSearchResultsRenderer?["primaryContents"] as? [String: Any]
+      let sectionListRenderer = primaryContents?["sectionListRenderer"] as? [String: Any]
+      guard let parentContents = sectionListRenderer?["contents"] as? [Any] else {
         logger.error("\(#function) -> \(#line) Error getting music list")
         return []
       }
-      
+      let itemSectionRenderer = (parentContents.first as? [String: Any])?["itemSectionRenderer"] as? [String: Any]
+      guard let contents = itemSectionRenderer?["contents"] as? [Any] else {
+        return []
+      }
       var musicItems: [MusicItem] = []
       for musicContent in contents {
         guard let musicContent = musicContent as? [String: Any] else {
           continue
         }
-        let videoWithContextRenderer = musicContent["videoWithContextRenderer"] as? [String: Any]
+        let videoRenderer = musicContent["videoRenderer"] as? [String: Any]
         
-        guard let musicItem = extractMusicItemFromVideoWithContextRenderer(videoWithContextRenderer: videoWithContextRenderer) else {
+        guard let musicItem = extractMusicItemFromVideoRenderer(videoRenderer: videoRenderer) else {
           continue
         }
         

@@ -8,7 +8,7 @@
 import Foundation
 
 extension URLSession {
-  func getTypeAheadSearchResult(query: String) async -> [String] {
+  public func getTypeAheadSearchResult(query: String) async -> [String] {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query)) else {
       logger.error("\(#function) -> \(#line) -> Invalid URL for typeahead search \(URL(string: HTTPMusicAPIPaths.suggestionTypeAheadResults(query: query))?.absoluteString ?? "<None>", privacy: .public)")
@@ -67,7 +67,7 @@ extension URLSession {
     }
   }
   
-  func getMusicSearchResults(query: String) async -> [MusicItem] {
+  public func getMusicSearchResults(query: String) async -> [MusicItem] {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.musicSearchResults) else {
       return []

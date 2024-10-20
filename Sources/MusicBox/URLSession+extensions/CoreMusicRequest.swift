@@ -123,7 +123,7 @@ extension URLSession: MusicSession {
   }
   
   
-  func getMusicStreamingURL(musicId: String) async  {
+  public func getMusicStreamingURL(musicId: String) async  {
     logger.recordFileAndFunction()
     // TODO: - Return music streaming URL
     await logPlaybackEvent(musicId: musicId)

@@ -8,15 +8,15 @@
 import Foundation
 
 public struct MusicItem {
-  let title: String
-  let publisherTitle: String
-  let runningDurationInSeconds: Int
-  let musicId: String
-  let smallestThumbnail: String
-  let largestThumbnail: String
+  public let title: String
+  public let publisherTitle: String
+  public let runningDurationInSeconds: Int
+  public let musicId: String
+  public let smallestThumbnail: String
+  public let largestThumbnail: String
   
-  static let defaultSmallestThumbnail = "https://img.icons8.com/?size=50&id=88618&format=png&color=000000"
-  static let defaultLargestThumbnail = "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
+  public static let defaultSmallestThumbnail = "https://img.icons8.com/?size=50&id=88618&format=png&color=000000"
+  public static let defaultLargestThumbnail = "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
   
   init(title: String,
        publisherTitle: String,

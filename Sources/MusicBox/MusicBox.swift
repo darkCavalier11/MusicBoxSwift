@@ -6,7 +6,7 @@ import os
 
 
 public struct MusicBox {
-  let musicSession: MusicSession
+  public let musicSession: MusicSession
   
   init(musicSession: MusicSession = URLSession.shared) {
     self.musicSession = musicSession

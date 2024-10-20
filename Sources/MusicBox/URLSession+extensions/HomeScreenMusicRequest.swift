@@ -8,7 +8,7 @@
 import Foundation
 
 extension URLSession {
-  func getHomeScreenMusicList() async -> [MusicItem]  {
+  public func getHomeScreenMusicList() async -> [MusicItem]  {
     logger.recordFileAndFunction()
     guard let url = URL(string: HTTPMusicAPIPaths.homeScreenMusicList) else {
       return []

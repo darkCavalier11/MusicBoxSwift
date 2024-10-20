@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MusicItem {
+public struct MusicItem {
   let title: String
   let publisherTitle: String
   let runningDurationInSeconds: Int

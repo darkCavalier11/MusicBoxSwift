@@ -5,7 +5,7 @@ import Foundation
 import os
 
 
-struct MusicBox {
+public struct MusicBox {
   let musicSession: MusicSession
   
   init(musicSession: MusicSession = URLSession.shared) {

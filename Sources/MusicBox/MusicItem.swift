@@ -18,7 +18,7 @@ public struct MusicItem {
   public static let defaultSmallestThumbnail = "https://img.icons8.com/?size=50&id=88618&format=png&color=000000"
   public static let defaultLargestThumbnail = "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
   
-  init(title: String,
+  public init(title: String,
        publisherTitle: String,
        runningDurationInSeconds: Int,
        musicId: String,

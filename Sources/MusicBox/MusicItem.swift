@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MusicItem {
+public struct MusicItem: Sendable, Codable {
   public let title: String
   public let publisherTitle: String
   public let runningDurationInSeconds: Int

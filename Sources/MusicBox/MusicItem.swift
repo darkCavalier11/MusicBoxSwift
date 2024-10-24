@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct MusicItem: Sendable, Codable {
+public struct MusicItem: Equatable, Sendable, Codable {
   public let title: String
   public let publisherTitle: String
   public let runningDurationInSeconds: Int
@@ -19,11 +19,11 @@ public struct MusicItem: Sendable, Codable {
   public static let defaultLargestThumbnail = "https://img.icons8.com/?size=300&id=88618&format=png&color=000000"
   
   public init(title: String,
-       publisherTitle: String,
-       runningDurationInSeconds: Int,
-       musicId: String,
-       smallestThumbnail: String?,
-       largestThumbnail: String?
+      publisherTitle: String,
+      runningDurationInSeconds: Int,
+      musicId: String,
+      smallestThumbnail: String? = nil,
+      largestThumbnail: String? = nil
   ) {
     self.title = title
     self.publisherTitle = publisherTitle

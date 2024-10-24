@@ -12,7 +12,7 @@ import os
 
 
 public class UserInternalData: NSManagedObject {
-  static private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreDataStack")
+  static private let logger = Logger(subsystem: "com.youtube.interface", category: "CoreData.UserInternalData")
   
   static func getLatestUserRequestPayload(context: NSManagedObjectContext) -> Data? {
     let request = UserInternalData.fetchRequest()

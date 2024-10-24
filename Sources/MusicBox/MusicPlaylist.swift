@@ -7,15 +7,17 @@
 
 import Foundation
 
-public struct MusicPlaylist {
-  public let items: [MusicItem]
+public struct MusicPlaylist: Identifiable, Codable, Sendable {
+  public let id: UUID
+  public let title: String
+  public var musicItems: [MusicItem]
   public var totalDurationInSeconds: Int {
-    items.reduce(0) { $0 + $1.runningDurationInSeconds }
+    musicItems.reduce(0) { $0 + $1.runningDurationInSeconds }
   }
   
   public var top3ArtistNames: [String] {
     var top3ArtistNames: [String] = []
-    for (idx, item) in items.enumerated() {
+    for (idx, item) in musicItems.enumerated() {
       if idx >= 3 { break }
       top3ArtistNames.append(item.publisherTitle)
     }
@@ -24,7 +26,7 @@ public struct MusicPlaylist {
   
   public var top3ThumbnailURLs: [URL] {
     var top3ThumbnailURLs: [URL] = []
-    for (idx, item) in items.enumerated() {
+    for (idx, item) in musicItems.enumerated() {
       if top3ThumbnailURLs.count == 3 { break }
       guard let thumbnailURL = URL(string: item.smallestThumbnail) else {
         continue
@@ -34,7 +36,16 @@ public struct MusicPlaylist {
     return top3ThumbnailURLs
   }
   
-  init (items: [MusicItem]) {
-    self.items = items
+  public mutating func addItemToPlaylist(_ item: MusicItem) -> Bool {
+    if musicItems.contains(where: { $0.musicId == item.musicId }) {
+      return false
+    }
+    return true
+  }
+  
+  public init(id: UUID = UUID(), title: String, items: [MusicItem]) {
+    self.id = id
+    self.title = title
+    self.musicItems = items
   }
 }

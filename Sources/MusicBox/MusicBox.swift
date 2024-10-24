@@ -4,7 +4,6 @@ import SwiftSoup
 import Foundation
 import os
 
-
 public struct MusicBox {
   public let musicSession: MusicSession
   

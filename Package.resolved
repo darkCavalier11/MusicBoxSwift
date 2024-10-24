@@ -1,5 +1,5 @@
 {
-  "originHash" : "634dc1c74368fc2843fa9e42109827312ef29b9e121a899737bfef1fc5a923d5",
+  "originHash" : "8c80c439c7cee6c1a2a021b6a1371c1ffb76cedc6d10554ce9aeff63cd50793a",
   "pins" : [
     {
       "identity" : "swiftsoup",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "3c2c7e1e72b8abd96eafbae80323c5c1e5317437",
         "version" : "2.7.5"
+      }
+    },
+    {
+      "identity" : "youtubekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
+      "state" : {
+        "revision" : "a04805da8111422e1581ca447e2e167808ec2b44",
+        "version" : "0.2.3"
       }
     }
   ],

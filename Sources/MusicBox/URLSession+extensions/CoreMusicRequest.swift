@@ -5,6 +5,7 @@
 //  Created by Sumit Pradhan on 19/10/24.
 //
 import Foundation
+import YouTubeKit
 
 extension URLSession: MusicSession {
   private func logPlaybackEvent(musicId: String) async {
@@ -123,9 +124,19 @@ extension URLSession: MusicSession {
   }
   
   
-  public func getMusicStreamingURL(musicId: String) async  {
+  public func getMusicStreamingURL(musicId: String) async -> URL?  {
     logger.recordFileAndFunction()
-    // TODO: - Return music streaming URL
+    let yt = YouTube(videoID: musicId)
+    guard let streams = try? await yt.streams else {
+      return nil
+    }
+    let audioTrack = streams
+      .filterAudioOnly()
+      .filter { $0.isNativelyPlayable }
+      .filter { $0.fileExtension == .m4a }
+      .highestAudioBitrateStream()
+    
     await logPlaybackEvent(musicId: musicId)
+    return audioTrack?.url
   }
 }

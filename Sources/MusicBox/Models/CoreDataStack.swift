@@ -11,7 +11,7 @@ import os
 
 fileprivate let logger = Logger(subsystem: "com.youtube.interface", category: "CoreDataStack")
 
-public class CoreDataStack {
+class CoreDataStack {
   private let modelName: String
   
   init(modelName: String) {

@@ -42,3 +42,10 @@ func TestGetRequestPayload() async {
   let payload = await session.getClientRequestPayload()
   #expect(payload != nil)
 }
+
+@Test("Getting next music list items from musicid")
+func TestNextMusicList() async {
+  let session = URLSession.shared
+  let musicItems = await session.getNextSuggestedMusicItems(musicId: "c3XOtUOdxlE")
+  #expect(musicItems.count > 0)
+}

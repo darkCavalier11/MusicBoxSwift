@@ -139,4 +139,116 @@ extension URLSession: MusicSession {
     await logPlaybackEvent(musicId: musicId)
     return audioTrack?.url
   }
+  
+  public func getNextSuggestedMusicItems(musicId: String) async -> [MusicItem] {
+    logger.recordFileAndFunction()
+    guard let url = URL(string: HTTPMusicAPIPaths.getNextMusicItems) else {
+      return []
+    }
+    
+    var request = URLRequest(url: url, timeoutInterval: 10)
+    request.httpMethod = "POST"
+    
+    guard var result = await getClientRequestPayload() else {
+      logger.error("\(#function) -> \(#line) -> Error getting request payload \(#function)")
+      return []
+    }
+    guard let context = result["context"] as? [String: Any],
+          let client = context["client"] as? [String: Any],
+          let visitorId = client["visitorData"] as? String else {
+      return []
+    }
+    result["videoId"] = musicId
+    result["continuation"] = await getMusicContinuationToken(visitorId: visitorId)
+    guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
+      return []
+    }
+    
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = httpBody
+    
+    do {
+      let (data, response) = try await data(for: request)
+      guard let response = response as? HTTPURLResponse else {
+        logger.error("\(#function) -> \(#line) -> Invalid response from server")
+        return []
+      }
+      
+      guard response.statusCode == 200 else {
+        logger.error("\(#function) -> \(#line) -> Invalid status code \(response.statusCode)")
+        return []
+      }
+      
+      guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
+        return []
+      }
+      
+      guard let continuationContents = json["continuationContents"] as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation contents")
+        return []
+      }
+      
+      guard let watchNextSecondaryResultsContinuation = continuationContents["watchNextSecondaryResultsContinuation"] as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation watchNextSecondaryResultsContinuation")
+        return []
+      }
+      
+      guard let results = watchNextSecondaryResultsContinuation["results"] as? [[String:Any]] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation results array")
+        return []
+      }
+      
+      let musicResults = results.compactMap { (item) -> [String: Any]? in
+        guard let compactVideoRenderer = item["compactVideoRenderer"] as? [String: Any] else {
+          return nil
+        }
+        return compactVideoRenderer
+      }
+     
+      let musicItems = musicResults.compactMap { (videoRenderer) -> MusicItem? in
+        let thumbnail = videoRenderer["thumbnail"] as? [String: Any]
+        let thumbnailList = thumbnail?["thumbnails"] as? [Any]
+        
+        let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
+        let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
+        
+        let longBylineText = videoRenderer["longBylineText"] as? [String: Any]
+        guard let longRuns = longBylineText?["runs"] as? [[String: Any]], longRuns.count > 0 else {
+          return nil
+        }
+        let titleDict = videoRenderer["title"] as? [String: Any]
+        guard let title = titleDict?["simpleText"] as? String else {
+          return nil
+        }
+        guard let publisherTitle = longRuns[0]["text"] as? String else {
+          return nil
+        }
+        
+        let lengthText = videoRenderer["lengthText"] as? [String: Any]
+        
+        let runningDuration = lengthText?["simpleText"] as? String
+        let runningDurationInSeconds = runningDuration?.convertDurationStringToSeconds() ?? -1
+        
+        guard let musicId = (videoRenderer["videoId"] as? String) else {
+          return nil
+        }
+        
+        let musicItem = MusicItem(
+          title: title,
+          publisherTitle: publisherTitle,
+          runningDurationInSeconds: runningDurationInSeconds,
+          musicId: musicId,
+          smallestThumbnail: smallestThumbnail,
+          largestThumbnail: largestThumbnail
+        )
+        return musicItem
+      }
+      return musicItems
+    }
+    catch {
+      logger.error("Error loggin playback event \(error.localizedDescription)")
+      return []
+    }
+  }
 }

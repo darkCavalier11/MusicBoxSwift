@@ -16,4 +16,5 @@ struct HTTPMusicAPIPaths {
   static let musicSearchResults = "https://www.youtube.com/youtubei/v1/search?prettyPrint=false"
   static let logPlayEventForMusic = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false"
   static let musicContinuationToken = "https://www.youtube.com/"
+  static let getNextMusicItems = "https://www.youtube.com/youtubei/v1/next?prettyPrint=false"
 }

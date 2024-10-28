@@ -11,4 +11,5 @@ public protocol MusicSession {
   func getTypeAheadSearchResult(query: String) async -> [String]
   func getMusicSearchResults(query: String) async -> [MusicItem]
   func getMusicStreamingURL(musicId: String) async -> URL?
+  func getNextSuggestedMusicItems(musicId: String) async -> [MusicItem]
 }

@@ -96,8 +96,6 @@ extension URLSession: MusicSession {
     
     let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
     let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
-    print(smallestThumbnail)
-    print(largestThumbnail)
     
     let longBylineText = videoRenderer?["longBylineText"] as? [String: Any]
     guard let longRuns = longBylineText?["runs"] as? [[String: Any]], longRuns.count > 0 else {
@@ -127,7 +125,13 @@ extension URLSession: MusicSession {
   
   
   public func getMusicStreamingURL(musicId: String) async -> URL?  {
-    logger.recordFileAndFunction()
+    defer {
+      logger.recordFileAndFunction()
+      Task {
+        await logPlaybackEvent(musicId: musicId)
+      }
+    }
+    
     let yt = YouTube(videoID: musicId)
     guard let streams = try? await yt.streams else {
       return nil
@@ -137,8 +141,6 @@ extension URLSession: MusicSession {
       .filter { $0.isNativelyPlayable }
       .filter { $0.fileExtension == .m4a }
       .highestAudioBitrateStream()
-    
-    await logPlaybackEvent(musicId: musicId)
     return audioTrack?.url
   }
   

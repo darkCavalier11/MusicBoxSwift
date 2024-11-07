@@ -28,6 +28,7 @@ func TestGetMusicSearchResults() async throws {
   #expect(result.first?.musicId != nil)
   #expect(result.first?.runningDurationInSeconds != nil)
   #expect(result.first?.publisherTitle != nil)
+  print(result)
 }
 
 @Test("Getting streaming URL for a music")

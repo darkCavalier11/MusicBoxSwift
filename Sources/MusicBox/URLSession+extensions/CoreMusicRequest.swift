@@ -96,6 +96,8 @@ extension URLSession: MusicSession {
     
     let smallestThumbnail = (thumbnailList?.first as? [String: Any])?["url"] as? String
     let largestThumbnail = (thumbnailList?.last as? [String: Any])?["url"] as? String
+    print(smallestThumbnail)
+    print(largestThumbnail)
     
     let longBylineText = videoRenderer?["longBylineText"] as? [String: Any]
     guard let longRuns = longBylineText?["runs"] as? [[String: Any]], longRuns.count > 0 else {
@@ -183,7 +185,6 @@ extension URLSession: MusicSession {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return []
       }
-      
       guard let continuationContents = json["continuationContents"] as? [String: Any] else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation contents")
         return []

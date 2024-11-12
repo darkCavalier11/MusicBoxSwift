@@ -4,7 +4,7 @@ import SwiftSoup
 import Foundation
 import os
 
-public struct MusicBox {
+public struct MusicBox: Sendable {
   public let musicSession: MusicSession
   
   public init(musicSession: MusicSession = URLSession.shared) {

@@ -6,7 +6,7 @@
 //
 import Foundation
 
-public protocol MusicSession {
+public protocol MusicSession: Sendable {
   func getHomeScreenMusicList() async -> [MusicItem]
   func getTypeAheadSearchResult(query: String) async -> [String]
   func getMusicSearchResults(query: String) async -> [MusicItem]

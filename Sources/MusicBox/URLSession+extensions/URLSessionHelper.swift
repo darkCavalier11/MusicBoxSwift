@@ -17,10 +17,16 @@ extension URLSession {
   var logger: Logger {
     Logger(subsystem: "com.youtube.interface", category: "Networking")
   }
-  // TODO: remove public
-  public func getClientRequestPayload() async -> [String: Any]? {
+
+  func getClientRequestPayload() async -> [String: Any]? {
     logger.recordFileAndFunction()
 
+    let coreDataRequest = UserInternalData.fetchRequest()
+    let moc = coreDataStack.managedObjectContext
+    if let context = try? moc.fetch(coreDataRequest), let data = context.first?.payload {
+      let dict = try? JSONSerialization.jsonObject(with: data)
+      return dict as? [String: Any]
+    }
     
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil

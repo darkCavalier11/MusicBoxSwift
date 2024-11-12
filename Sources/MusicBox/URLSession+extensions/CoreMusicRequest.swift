@@ -163,7 +163,10 @@ extension URLSession: MusicSession {
       return []
     }
     result["videoId"] = musicId
-    result["continuation"] = await getMusicContinuationToken(visitorId: visitorId)
+    if let continuation = await getMusicContinuationToken(visitorId: visitorId) {
+      result["continuation"] = continuation
+    }
+    
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       return []
     }

@@ -235,7 +235,9 @@ extension URLSession {
       return musicItem.count > 0 ? musicItem.first : [:]
     }
     
-    guard let context = context, context.count > 0, let token = context.first?["token"] as? String else {
+    guard let context = context,
+            context.count > 0,
+            let token = context.first?["token"] as? String else {
       return nil
     }
     

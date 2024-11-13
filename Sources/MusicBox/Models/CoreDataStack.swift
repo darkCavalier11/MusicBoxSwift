@@ -28,6 +28,7 @@ class CoreDataStack {
         logger.error("Failed to load persistent stores: \(error)")
       }
     }
+    print(container)
     return container
   }()
   

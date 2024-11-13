@@ -22,10 +22,10 @@ public protocol MusicSession: Sendable {
 }
 ```
 ### Code structure
-- Models
+- **Models**:
 Few client payload need to store inside CoreData to facilitate YouTube's song recommendation and searching. During request this payload used as to mimic a web client and get proper response and recommedation for future.
 
-- URLSession+extensions
+- **URLSession+extensions**:
 This is where all the `MusicSession` methods are implementated. Each file contain one or more methods. Few additional private methods are there to bootstrap the web mimic process i.e. getting payload data for a client to use during subsequent request.
 
  

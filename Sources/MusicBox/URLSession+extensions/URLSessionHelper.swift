@@ -17,17 +17,8 @@ extension URLSession {
   var logger: Logger {
     Logger(subsystem: "com.youtube.interface", category: "Networking")
   }
-
-  func getClientRequestPayload() async -> [String: Any]? {
-    logger.recordFileAndFunction()
-
-    let coreDataRequest = UserInternalData.fetchRequest()
-    let moc = coreDataStack.managedObjectContext
-    if let context = try? moc.fetch(coreDataRequest), let data = context.first?.payload {
-      let dict = try? JSONSerialization.jsonObject(with: data)
-      return dict as? [String: Any]
-    }
-    
+  
+  private func getNewClientRequestPayload() async -> [String: Any]? {
     guard let url = URL(string: HTTPMusicAPIPaths.requestPayload) else {
       return nil
     }
@@ -103,6 +94,24 @@ extension URLSession {
       logger.error("\(#function) -> \(#line) -> Error making API request \(error.localizedDescription, privacy: .public)")
       return nil
     }
+  }
+
+  func getClientRequestPayload() async -> [String: Any]? {
+    logger.recordFileAndFunction()
+
+    let coreDataRequest = UserInternalData.fetchRequest()
+    let moc = coreDataStack.managedObjectContext
+    if let context = try? moc.fetch(coreDataRequest), let data = context.last?.payload {
+      let dict = try? JSONSerialization.jsonObject(with: data)
+      defer {
+        Task<Void, Never>{
+          _ = await getNewClientRequestPayload()
+        }
+      }
+      return dict as? [String: Any]
+    }
+    
+    return await getNewClientRequestPayload()
   }
   
   func getMusicContinuationToken(visitorId: String) async -> String? {

@@ -1,13 +1,13 @@
 {
-  "originHash" : "8c80c439c7cee6c1a2a021b6a1371c1ffb76cedc6d10554ce9aeff63cd50793a",
+  "originHash" : "b8c2dea81e2bfb24e33e24b5076000870840656ed66dee04ba55d8b599553e5a",
   "pins" : [
     {
       "identity" : "swiftsoup",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/scinfu/SwiftSoup.git",
       "state" : {
-        "revision" : "3c2c7e1e72b8abd96eafbae80323c5c1e5317437",
-        "version" : "2.7.5"
+        "revision" : "6b4930da67b462d3f200472c902dd016d37a554d",
+        "version" : "2.7.7"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/alexeichhorn/YouTubeKit.git",
       "state" : {
-        "revision" : "a04805da8111422e1581ca447e2e167808ec2b44",
-        "version" : "0.2.3"
+        "revision" : "e7dbaa332ff190e85241bb90e9a26f3ce4993458",
+        "version" : "0.2.6"
       }
     }
   ],

@@ -163,9 +163,6 @@ extension URLSession: MusicSession {
       return []
     }
     result["videoId"] = musicId
-    if let continuation = await getMusicContinuationToken(visitorId: visitorId) {
-      result["continuation"] = continuation
-    }
     
     guard let httpBody = try? JSONSerialization.data(withJSONObject: result) else {
       return []
@@ -190,22 +187,33 @@ extension URLSession: MusicSession {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing music items")
         return []
       }
-      guard let continuationContents = json["continuationContents"] as? [String: Any] else {
-        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation contents")
+      
+      guard let contents = json["contents"] as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing contents")
         return []
       }
       
-      guard let watchNextSecondaryResultsContinuation = continuationContents["watchNextSecondaryResultsContinuation"] as? [String: Any] else {
-        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation watchNextSecondaryResultsContinuation")
+      guard let watchNextSecondaryResultsContinuation = contents["twoColumnWatchNextResults"] as? [String: Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation twoColumnWatchNextResults")
         return []
       }
       
-      guard let results = watchNextSecondaryResultsContinuation["results"] as? [[String:Any]] else {
+      guard let results = watchNextSecondaryResultsContinuation["secondaryResults"] as? [String:Any] else {
         logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation results array")
         return []
       }
       
-      let musicResults = results.compactMap { (item) -> [String: Any]? in
+      guard let nestedResults = results["secondaryResults"] as? [String:Any] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation results array")
+        return []
+      }
+      
+      guard let contents = nestedResults["results"] as? [[String:Any]] else {
+        logger.error("\(#function) -> \(#line) -> Invalid JSON for parsing continuation results array")
+        return []
+      }
+      
+      let musicResults = contents.compactMap { (item) -> [String: Any]? in
         guard let compactVideoRenderer = item["compactVideoRenderer"] as? [String: Any] else {
           return nil
         }
